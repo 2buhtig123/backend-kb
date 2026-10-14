@@ -1,0 +1,46 @@
+---
+/**
+ * 右侧目录 (Table of Contents)
+ */
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+const filtered = (headings || []).filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{
+  filtered.length > 0 && (
+    <aside class="hidden lg:block">
+      <div class="sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto pl-2">
+        <h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          本页目录
+        </h3>
+        <ul class="space-y-1.5 border-l border-slate-200 text-sm dark:border-slate-800">
+          {filtered.map((h) => (
+            <li>
+              <a
+                href={`#${h.slug}`}
+                class:list={[
+                  '-ml-px block border-l py-0.5 transition-colors',
+                  h.depth === 2 ? 'pl-4' : 'pl-8',
+                  'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-white',
+                ]}
+              >
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  )
+}

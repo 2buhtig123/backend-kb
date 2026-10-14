@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="贡献指南" description="如何为数字 IC 后端知识库贡献内容">
+  <div class="container-prose py-12">
+    <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">贡献指南</h1>
+
+    <div class="prose prose-slate mt-8 max-w-none dark:prose-invert">
+      <p class="lead text-xl text-slate-600 dark:text-slate-400">
+        欢迎你为这个开源知识库贡献内容！本指南说明如何贡献、面经脱敏要求、提 PR 流程。
+      </p>
+
+      <h2>📋 内容贡献方式</h2>
+      <h3>1. 修正错误 / 改进措辞</h3>
+      <ul>
+        <li>发现 Markdown 错别字、公式错误、链接失效</li>
+        <li>改进表述，让读者更容易理解</li>
+        <li>补充遗漏的细节或新的技术趋势</li>
+      </ul>
+
+      <h3>2. 新增八股题</h3>
+      <ul>
+        <li>按"题目 + 参考答案 + 加分点"三段式</li>
+        <li>每道题注明出处（自身经历/朋友分享/网络整理）</li>
+        <li>避免直接复制付费内容</li>
+      </ul>
+
+      <h3>3. 补充公司信息</h3>
+      <ul>
+        <li>更新头部公司招聘动态（提前批/正式批时间线）</li>
+        <li>提供脱敏后的薪资爆料、岗位 JD、内推渠道</li>
+      </ul>
+
+      <h3>4. 翻译为英文</h3>
+      <ul>
+        <li>i18n 支持：欢迎翻译为英文版（未来扩展）</li>
+      </ul>
+
+      <h2>🔒 隐私与脱敏要求</h2>
+      <p><strong>提交面经/薪资前，请务必脱敏：</strong></p>
+      <ul>
+        <li>❌ 不要写真实姓名、身份证号、手机号</li>
+        <li>❌ 不要贴公司机密文档、未公开 roadmap</li>
+        <li>❌ 不要贴未经授权的内推码/链接（先和内推人确认）</li>
+        <li>✅ 公司名、岗位名、级别、薪资范围可以保留</li>
+        <li>✅ 题目、流程、面试官风格可以描述</li>
+      </ul>
+
+      <h2>🔧 提 PR 流程</h2>
+      <h3>步骤 1：Fork 仓库</h3>
+      <pre><code>git clone https://github.com/your-org/backend-kb.git
+cd backend-kb
+git checkout -b feat/your-topic</code></pre>
+
+      <h3>步骤 2：修改内容</h3>
+      <p>本仓库内编辑 Markdown 文件，例如 <code>backend-kb/01-基础知识/01-静态时序分析STA.md</code></p>
+
+      <h3>步骤 3：同步到 site/src/content/</h3>
+      <pre><code>cd site
+npm install
+npm run migrate-content   # 把新内容同步到 site</code></pre>
+
+      <h3>步骤 4：本地验证</h3>
+      <pre><code>npm run dev
+# 浏览器打开 http://localhost:4321 验证</code></pre>
+
+      <h3>步骤 5：提交 PR</h3>
+      <pre><code>git add .
+git commit -m "feat(basics): 补充 PNR 中拥塞排查的实战案例"
+git push origin feat/your-topic
+# 在 GitHub 上开 PR，描述改动 + 截图</code></pre>
+
+      <h2>📐 内容规范</h2>
+      <ul>
+        <li>中英文混排，<strong>核心术语保留英文</strong>（如 Setup Slack、CTS）</li>
+        <li>每个基础知识文件开头给一句话核心定义</li>
+        <li>八股题必须包含：题目 + 答案 + 加分点</li>
+        <li>公司信息按"业务/岗位/地点/流程/薪资/评价"6 段</li>
+        <li>避免口水话，<strong>结论先行</strong></li>
+      </ul>
+
+      <h2>⚖️ 准则</h2>
+      <ul>
+        <li>保持<strong>客观</strong>——避免"这公司垃圾"等情绪化表述</li>
+        <li>尊重<strong>版权</strong>——非原创内容注明来源</li>
+        <li>不发布<strong>广告</strong>——任何付费推广都会被 reject</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>

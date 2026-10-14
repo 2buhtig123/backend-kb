@@ -1,0 +1,243 @@
+---
+/**
+ * 首页
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allDocs = await getCollection('docs');
+
+// 按模块聚合
+const byModule = allDocs.reduce((acc: Record<string, any[]>, doc) => {
+  if (!acc[doc.data.module]) acc[doc.data.module] = [];
+  acc[doc.data.module].push(doc);
+  return acc;
+}, {});
+
+const MODULES = [
+  {
+    slug: 'basics',
+    title: '基础知识',
+    icon: '📚',
+    description: '数字后端工程师的"六件套"：CMOS、STA、CTS、PNR、PV、UPF。从入门到进阶。',
+    color: 'blue' as const,
+    count: (byModule.basics ?? []).length,
+  },
+  {
+    slug: 'interview',
+    title: '八股题库',
+    icon: '📝',
+    description: '高频面试题 + 参考答案 + 加分点。覆盖时序、CDC、面积、功耗等核心方向。',
+    color: 'purple' as const,
+    count: (byModule.interview ?? []).length,
+  },
+  {
+    slug: 'autumn-recruit',
+    title: '秋招汇总',
+    icon: '🍂',
+    description: '头部 10 家公司投递指南：海思、联发科、NVIDIA、AMD、EDA 三巨头……',
+    color: 'amber' as const,
+    count: (byModule['autumn-recruit'] ?? []).length,
+  },
+  {
+    slug: 'social-recruit',
+    title: '社招汇总',
+    icon: '💼',
+    description: '在职跳槽指南：级别对应、薪资谈判、面试重点。',
+    color: 'green' as const,
+    count: (byModule['social-recruit'] ?? []).length,
+  },
+  {
+    slug: 'internship',
+    title: '实习汇总',
+    icon: '🎯',
+    description: '暑期实习投递、转正答辩、留用决策。',
+    color: 'amber' as const,
+    count: (byModule.internship ?? []).length,
+  },
+  {
+    slug: 'tools',
+    title: '工具资源',
+    icon: '🛠',
+    description: '脚本、Cheatsheet、书单、博客推荐——提升日常效率。',
+    color: 'blue' as const,
+    count: (byModule.tools ?? []).length,
+  },
+];
+
+const totalDocs = allDocs.length;
+---
+
+<BaseLayout
+  title="数字 IC 后端知识库 | Backend Knowledge Base"
+  description="面向数字 IC 后端（PD/CTS/PV/Low Power）求职者的开源知识库"
+>
+  <!-- Hero -->
+  <section class="relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
+    <div class="absolute inset-0 bg-grid-slate opacity-30 dark:opacity-20"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white dark:from-slate-950 dark:via-transparent dark:to-slate-950"></div>
+
+    <div class="container-wide relative py-20 lg:py-28">
+      <div class="mx-auto max-w-3xl text-center">
+        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300">
+          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500"></span>
+          {totalDocs} 篇内容 · 持续更新中
+        </div>
+
+        <h1 class="text-balance text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl dark:text-white">
+          数字 IC 后端
+          <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            求职知识库
+          </span>
+        </h1>
+
+        <p class="mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+          面向数字集成电路后端实现（Physical Design / CTS / PV / Low Power）工程师的开源求职 Wiki。
+          <br />
+          结构化整理、时效性维护、可搜索、可贡献。
+        </p>
+
+        <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a
+            href="/basics"
+            class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-blue-700"
+          >
+            开始学习
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </a>
+          <a
+            href="https://github.com/your-org/backend-kb"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+              ></path>
+            </svg>
+            GitHub 仓库
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 模块卡片 -->
+  <section class="container-wide py-16 lg:py-20">
+    <div class="mb-10 flex items-end justify-between">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          内容地图
+        </h2>
+        <p class="mt-2 text-slate-600 dark:text-slate-400">
+          六大模块，按学习路径和招聘节点两条轴组织
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        MODULES.map((m) => (
+          <a href={`/${m.slug}`} class="card group block">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class:list={[
+                    'flex h-10 w-10 items-center justify-center rounded-lg text-xl',
+                    m.color === 'blue' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
+                    m.color === 'purple' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300',
+                    m.color === 'amber' && 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+                    m.color === 'green' && 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300',
+                  ]}
+                >
+                  {m.icon}
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+                    {m.title}
+                  </h3>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">{m.count} 篇文章</span>
+                </div>
+              </div>
+              <svg
+                class="h-5 w-5 text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-blue-500 dark:text-slate-700"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </div>
+            <p class="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              {m.description}
+            </p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- 数据展示 -->
+  <section class="border-y border-slate-200 bg-slate-50 py-12 dark:border-slate-800 dark:bg-slate-950">
+    <div class="container-wide">
+      <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 lg:text-4xl">
+            {totalDocs}+
+          </div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">原创内容</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 lg:text-4xl">
+            {MODULES.length}
+          </div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">内容模块</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 lg:text-4xl">
+            100%
+          </div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">开源 CC 协议</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400 lg:text-4xl">
+            0¥
+          </div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">永久免费访问</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="container-wide py-16">
+    <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-8 text-white shadow-xl md:p-12">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-balance text-3xl font-bold md:text-4xl">
+          求职是一个"信息战 + 持久战"
+        </h2>
+        <p class="mt-4 text-balance text-lg text-blue-50">
+          这个知识库能给你的是<strong>信息差抹平</strong>。
+          真正的胜负在项目经历、刷题量、和那几次关键的面试现场。
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a
+            href="/basics"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-md transition-colors hover:bg-blue-50"
+          >
+            开始 6 个月学习计划
+          </a>
+          <a
+            href="/autumn-recruit"
+            class="inline-flex items-center gap-2 rounded-md border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+          >
+            查看秋招指南
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

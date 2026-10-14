@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ 基础样式 ============ */
+@layer base {
+  :root {
+    --color-primary: 37 99 235; /* blue-600 */
+    --color-primary-light: 96 165 250; /* blue-400 */
+    --color-bg: 255 255 255;
+    --color-bg-muted: 248 250 252; /* slate-50 */
+    --color-fg: 15 23 42; /* slate-900 */
+    --color-fg-muted: 100 116 139; /* slate-500 */
+    --color-border: 226 232 240; /* slate-200 */
+    --color-card: 255 255 255;
+    --color-accent: 37 99 235;
+  }
+
+  .dark {
+    --color-bg: 15 23 42;
+    --color-bg-muted: 30 41 59;
+    --color-fg: 241 245 249;
+    --color-fg-muted: 148 163 184;
+    --color-border: 51 65 85;
+    --color-card: 30 41 59;
+    --color-accent: 96 165 250;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-[rgb(var(--color-bg))] text-[rgb(var(--color-fg))] font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-600;
+  }
+}
+
+/* ============ 组件样式 ============ */
+@layer components {
+  .container-prose {
+    @apply mx-auto w-full max-w-4xl px-6 lg:px-8;
+  }
+
+  .container-wide {
+    @apply mx-auto w-full max-w-7xl px-6 lg:px-8;
+  }
+
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-blue {
+    @apply badge bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300;
+  }
+
+  .badge-green {
+    @apply badge bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300;
+  }
+
+  .badge-amber {
+    @apply badge bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
+  }
+
+  .badge-purple {
+    @apply badge bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300;
+  }
+
+  .nav-link {
+    @apply text-sm text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400;
+  }
+
+  .nav-link-active {
+    @apply text-blue-600 dark:text-blue-400 font-medium;
+  }
+
+  /* 标题锚点 */
+  .anchor-link {
+    @apply text-inherit no-underline hover:text-blue-600 dark:hover:text-blue-400;
+  }
+
+  /* 代码块 */
+  pre {
+    @apply !rounded-lg !shadow-sm;
+  }
+
+  /* 表格 */
+  table {
+    @apply !my-6;
+  }
+
+  th {
+    @apply !font-semibold;
+  }
+}
+
+/* ============ 工具样式 ============ */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-grid-slate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath fill='none' stroke='%23cbd5e1' stroke-width='0.5' d='M0 0h40v40H0z'/%3E%3C/svg%3E");
+  }
+
+  .dark .bg-grid-slate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath fill='none' stroke='%23334155' stroke-width='0.5' d='M0 0h40v40H0z'/%3E%3C/svg%3E");
+  }
+}

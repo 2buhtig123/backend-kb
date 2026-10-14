@@ -1,0 +1,137 @@
+---
+/**
+ * 模块列表页：/basics, /interview, /autumn-recruit, ...
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  return [
+    { params: { module: 'basics' } },
+    { params: { module: 'interview' } },
+    { params: { module: 'autumn-recruit' } },
+    { params: { module: 'social-recruit' } },
+    { params: { module: 'internship' } },
+    { params: { module: 'tools' } },
+  ];
+}
+
+const { module } = Astro.params;
+
+const MODULE_META: Record<string, { title: string; icon: string; description: string; color: string }> = {
+  basics: {
+    title: '基础知识',
+    icon: '📚',
+    description: '数字后端工程师的"六件套"：CMOS、STA、CTS、PNR、PV、UPF。从入门到进阶。',
+    color: 'blue',
+  },
+  interview: {
+    title: '八股题库',
+    icon: '📝',
+    description: '高频面试题 + 参考答案 + 加分点。覆盖时序、CDC、面积、功耗等核心方向。',
+    color: 'purple',
+  },
+  'autumn-recruit': {
+    title: '秋招汇总',
+    icon: '🍂',
+    description: '头部 10 家公司投递指南：海思、联发科、NVIDIA、AMD、EDA 三巨头……',
+    color: 'amber',
+  },
+  'social-recruit': {
+    title: '社招汇总',
+    icon: '💼',
+    description: '在职跳槽指南：级别对应、薪资谈判、面试重点。',
+    color: 'green',
+  },
+  internship: {
+    title: '实习汇总',
+    icon: '🎯',
+    description: '暑期实习投递、转正答辩、留用决策。',
+    color: 'amber',
+  },
+  tools: {
+    title: '工具资源',
+    icon: '🛠',
+    description: '脚本、Cheatsheet、书单、博客推荐——提升日常效率。',
+    color: 'blue',
+  },
+};
+
+const meta = MODULE_META[module!];
+const docs = (await getCollection('docs'))
+  .filter((d) => d.data.module === module)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// 空状态文案
+const EMPTY_MESSAGE: Record<string, string> = {
+  basics: '基础知识正在持续补充中，敬请期待。',
+  interview: '八股题库正在持续补充中，敬请期待。',
+  'autumn-recruit': '秋招信息正在持续更新中。',
+  'social-recruit': '社招汇总正在筹备中。',
+  internship: '实习汇总正在筹备中。',
+  tools: '工具资源正在筹备中。',
+};
+---
+
+<BaseLayout title={`${meta.title} | 数字 IC 后端知识库`} description={meta.description}>
+  <div class="container-wide py-12">
+    <!-- 面包屑 -->
+    <nav class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+      <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">首页</a>
+      <span class="mx-2">/</span>
+      <span class="text-slate-900 dark:text-white">{meta.title}</span>
+    </nav>
+
+    <!-- 头部 -->
+    <header class="mb-10">
+      <div class="flex items-center gap-3">
+        <span class="text-4xl">{meta.icon}</span>
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-white lg:text-4xl">
+            {meta.title}
+          </h1>
+          <p class="mt-1 text-slate-600 dark:text-slate-400">{meta.description}</p>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-3 text-sm">
+        <span class="badge-blue">{docs.length} 篇文章</span>
+        <span class="text-slate-500 dark:text-slate-400">
+          最后更新：{new Date().toLocaleDateString('zh-CN')}
+        </span>
+      </div>
+    </header>
+
+    <!-- 文章列表 -->
+    {docs.length > 0 ? (
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {docs.map((doc) => (
+          <Card
+            href={`/docs/${doc.id.replace(/\.md$/, '')}`}
+            icon={
+              meta.color === 'blue'
+                ? '📘'
+                : meta.color === 'purple'
+                  ? '📗'
+                  : meta.color === 'amber'
+                    ? '📕'
+                    : '📙'
+            }
+            title={doc.data.title}
+            description={doc.data.description}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-lg">🚧</p>
+        <p class="mt-2 text-slate-600 dark:text-slate-400">
+          {EMPTY_MESSAGE[module!] ?? '该模块正在筹备中。'}
+        </p>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-500">
+          欢迎 <a href="https://github.com/your-org/backend-kb" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">参与贡献</a>
+        </p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

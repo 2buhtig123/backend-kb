@@ -1,0 +1,81 @@
+---
+/**
+ * 底部
+ */
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+  <div class="container-wide py-10">
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+      <!-- 品牌 -->
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white shadow-md"
+          >
+            🔗
+          </div>
+          <span class="text-base font-bold text-slate-900 dark:text-white">
+            数字 IC 后端知识库
+          </span>
+        </div>
+        <p class="mt-3 max-w-md text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          面向数字集成电路后端实现（Physical Design / CTS / PV / Low Power）工程师的开源求职知识库。
+          <br />
+          覆盖基础知识、八股题库、实习、秋招、社招、工具资源六大模块。
+        </p>
+      </div>
+
+      <!-- 链接组 1 -->
+      <div>
+        <h3 class="mb-3 text-sm font-semibold text-slate-900 dark:text-white">内容导航</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/basics" class="nav-link">📚 基础知识</a></li>
+          <li><a href="/interview" class="nav-link">📝 八股题库</a></li>
+          <li><a href="/autumn-recruit" class="nav-link">🍂 秋招汇总</a></li>
+          <li><a href="/social-recruit" class="nav-link">💼 社招汇总</a></li>
+          <li><a href="/internship" class="nav-link">🎯 实习汇总</a></li>
+          <li><a href="/tools" class="nav-link">🛠 工具资源</a></li>
+        </ul>
+      </div>
+
+      <!-- 链接组 2 -->
+      <div>
+        <h3 class="mb-3 text-sm font-semibold text-slate-900 dark:text-white">关于</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/about" class="nav-link">关于本站</a></li>
+          <li><a href="/contributing" class="nav-link">贡献指南</a></li>
+          <li>
+            <a
+              href="https://github.com/your-org/backend-kb"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="nav-link">GitHub 仓库 ↗</a
+            >
+          </li>
+          <li>
+            <a href="/sitemap-index.xml" class="nav-link">Sitemap</a>
+          </li>
+          <li><a href="/rss.xml" class="nav-link">RSS 订阅</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 md:flex-row dark:border-slate-800 dark:text-slate-400"
+    >
+      <div>
+        © {year} 数字 IC 后端知识库 ·
+        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer" class="hover:underline">
+          CC BY-NC-SA 4.0
+        </a>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Built with Astro</span>
+        <span>·</span>
+        <span>Deployed on EdgeOne Pages</span>
+      </div>
+    </div>
+  </div>
+</footer>

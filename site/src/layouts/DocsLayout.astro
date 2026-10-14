@@ -1,0 +1,65 @@
+---
+/**
+ * 文档页布局：左侧导航 + 中间内容 + 右侧 TOC
+ */
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import TOC from '../components/TOC.astro';
+import { getCollection } from 'astro:content';
+
+interface Props {
+  title: string;
+  description?: string;
+  module: string;
+  frontmatter?: Record<string, any>;
+  hideSidebar?: boolean;
+}
+
+const { title, description, module, frontmatter, hideSidebar = false } = Astro.props;
+
+// 按 module 聚合所有文档，构建侧边栏
+const allDocs = await getCollection('docs');
+
+const MODULE_META: Record<string, { title: string; icon: string; slug: string }> = {
+  basics: { title: '基础知识', icon: '📚', slug: 'basics' },
+  interview: { title: '八股题库', icon: '📝', slug: 'interview' },
+  'autumn-recruit': { title: '秋招汇总', icon: '🍂', slug: 'autumn-recruit' },
+  'social-recruit': { title: '社招汇总', icon: '💼', slug: 'social-recruit' },
+  internship: { title: '实习汇总', icon: '🎯', slug: 'internship' },
+  tools: { title: '工具资源', icon: '🛠', slug: 'tools' },
+};
+
+const navItems = allDocs
+  .filter((doc) => doc.data.module === module)
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((doc) => ({
+    title: doc.data.title,
+    slug: doc.id.replace(/\.md$/, ''),
+  }));
+---
+
+<BaseLayout title={`${title} | 数字 IC 后端知识库`} description={description}>
+  <div class="container-wide grid grid-cols-1 gap-8 py-8 lg:grid-cols-[260px_1fr_220px]">
+    <!-- 左侧：侧边栏 -->
+    {!hideSidebar && (
+      <aside class="hidden lg:block">
+        <Sidebar
+          module={module}
+          moduleTitle={MODULE_META[module]?.title ?? ''}
+          moduleIcon={MODULE_META[module]?.icon ?? '📄'}
+          moduleSlug={MODULE_META[module]?.slug ?? module}
+          items={navItems}
+          currentSlug={Astro.url.pathname.replace(/^\/docs\//, '').replace(/\/$/, '')}
+        />
+      </aside>
+    )}
+
+    <!-- 中间：内容 -->
+    <article class="min-w-0">
+      <slot />
+    </article>
+
+    <!-- 右侧：TOC（桌面端） -->
+    {!hideSidebar && <TOC headings={frontmatter?.headings ?? []} />}
+  </div>
+</BaseLayout>

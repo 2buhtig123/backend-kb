@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="关于本站" description="关于数字 IC 后端知识库的使命、维护、联系方式">
+  <div class="container-prose py-12">
+    <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">关于本站</h1>
+
+    <div class="prose prose-slate mt-8 max-w-none dark:prose-invert">
+      <p class="lead text-xl text-slate-600 dark:text-slate-400">
+        一份<strong>面向求职者</strong>的公开知识库——区别于各类碎片化的面经和博客。
+      </p>
+
+      <h2>🎯 我们要解决什么问题</h2>
+      <ul>
+        <li><strong>碎片化</strong>：面经散落在牛客、知乎、脉脉，难以系统学习</li>
+        <li><strong>过时</strong>：招聘信息每季度变，传统博客帖子很快过期</li>
+        <li><strong>浅层</strong>：多数内容只给结论不给推导，不解释"为什么"</li>
+        <li><strong>封闭</strong>：付费内容越来越多，免费的好内容稀缺</li>
+      </ul>
+
+      <h2>💡 我们的解决方案</h2>
+      <ul>
+        <li>✅ <strong>结构化</strong>：按"知识体系 + 招聘节点"两条轴组织，能搜索、能筛选</li>
+        <li>✅ <strong>时效性</strong>：招聘信息按季度更新，不做"过期古董"</li>
+        <li>✅ <strong>可验证</strong>：每个八股题都有"参考答案 + 真实案例"双栏</li>
+        <li>✅ <strong>可贡献</strong>：接受社区 PR（脱敏后），共建可持续更新的 Wiki</li>
+      </ul>
+
+      <h2>👥 谁适合看</h2>
+      <ul>
+        <li>🎓 <strong>本科/硕士在校生</strong>：准备数字后端实习 / 秋招</li>
+        <li>💼 <strong>在职 1-5 年工程师</strong>：备战社招 / 跳槽 / 跨方向</li>
+        <li>🏫 <strong>跨专业转行人群</strong>：电子/微电子/CS 通信等相关专业</li>
+      </ul>
+      <p><em>不是给资深架构师 / Director 看的——他们的招聘和你的关注点完全不同。</em></p>
+
+      <h2>🛠 技术栈</h2>
+      <ul>
+        <li><a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro 5.x</a> — 静态站点生成，零 JS 默认</li>
+        <li><a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer">Tailwind CSS 3.x</a> — 样式系统</li>
+        <li><a href="https://pagefind.app" target="_blank" rel="noopener noreferrer">Pagefind</a> — 全站静态搜索</li>
+        <li><a href="https://rehype-typography.netlify.app" target="_blank" rel="noopener noreferrer">rehype-slug + autolink-headings</a> — Markdown 增强</li>
+      </ul>
+
+      <h2>📜 License</h2>
+      <p>
+        本知识库采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a> 协议。
+      </p>
+    </div>
+  </div>
+</BaseLayout>

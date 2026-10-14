@@ -1,0 +1,194 @@
+---
+/**
+ * 顶部导航栏
+ */
+const pathname = Astro.url.pathname;
+
+const navLinks = [
+  { href: '/', label: '首页' },
+  { href: '/basics', label: '基础知识' },
+  { href: '/interview', label: '八股题库' },
+  { href: '/autumn-recruit', label: '秋招汇总' },
+  { href: '/social-recruit', label: '社招汇总' },
+  { href: '/internship', label: '实习汇总' },
+  { href: '/tools', label: '工具资源' },
+];
+
+const isActive = (href: string) => {
+  if (href === '/') return pathname === '/';
+  return pathname.startsWith(href);
+};
+---
+
+<header
+  class="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80"
+>
+  <div class="container-wide flex h-16 items-center justify-between">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2.5">
+      <div
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white shadow-md"
+      >
+        🔗
+      </div>
+      <div class="flex flex-col">
+        <span class="text-base font-bold leading-tight text-slate-900 dark:text-white">
+          数字后端 KB
+        </span>
+        <span class="text-xs leading-tight text-slate-500 dark:text-slate-400">
+          Backend Knowledge Base
+        </span>
+      </div>
+    </a>
+
+    <!-- 主导航（桌面） -->
+    <nav class="hidden items-center gap-1 md:flex">
+      {
+        navLinks.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'rounded-md px-3 py-1.5 text-sm transition-colors',
+              isActive(link.href)
+                ? 'bg-blue-50 font-medium text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
+            ]}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <!-- 右侧：搜索 + 暗色模式 -->
+    <div class="flex items-center gap-2">
+      <!-- 搜索框（桌面） -->
+      <div class="hidden md:block">
+        <button
+          id="search-trigger"
+          class="group flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-500 transition-colors hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+          aria-label="搜索"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <span>搜索...</span>
+          <kbd
+            class="ml-2 inline-flex items-center rounded border border-slate-300 bg-white px-1.5 font-mono text-[10px] text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400"
+          >
+            ⌘ K
+          </kbd>
+        </button>
+      </div>
+
+      <!-- 暗色模式切换 -->
+      <button
+        id="theme-toggle"
+        class="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+        aria-label="切换主题"
+      >
+        <!-- Sun icon -->
+        <svg
+          class="h-5 w-5 hidden dark:block"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          ></path>
+        </svg>
+        <!-- Moon icon -->
+        <svg class="h-5 w-5 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.373 9.373 0 003 12a9 9 0 0015.354 5.354z"
+          ></path>
+        </svg>
+      </button>
+
+      <!-- GitHub 链接 -->
+      <a
+        href="https://github.com/your-org/backend-kb"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+        aria-label="GitHub"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+          ></path>
+        </svg>
+      </a>
+
+      <!-- 移动端菜单按钮 -->
+      <button
+        id="mobile-menu-button"
+        class="rounded-md p-2 text-slate-500 hover:bg-slate-100 md:hidden dark:text-slate-400 dark:hover:bg-slate-800"
+        aria-label="菜单"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 移动端菜单 -->
+  <div id="mobile-menu" class="hidden border-t border-slate-200 bg-white md:hidden dark:border-slate-800 dark:bg-slate-950">
+    <nav class="container-wide flex flex-col py-2">
+      {
+        navLinks.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'rounded-md px-3 py-2 text-sm transition-colors',
+              isActive(link.href)
+                ? 'bg-blue-50 font-medium text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+            ]}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>
+
+<!-- 暗色模式切换脚本 -->
+<script is:inline>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+
+  // 移动端菜单
+  const menuButton = document.getElementById('mobile-menu-button');
+  const menu = document.getElementById('mobile-menu');
+  menuButton?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+  });
+
+  // ⌘K 快捷键打开搜索（稍后由 SearchBox 接管）
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      document.getElementById('search-trigger')?.click();
+    }
+  });
+</script>

@@ -1,0 +1,22 @@
+# Auto-detect text files, force LF on push
+* text=auto eol=lf
+
+# Shell scripts must use LF (Windows CRLF will break them)
+*.sh text eol=lf
+
+# Markdown can have mixed line endings, but prefer LF
+*.md text eol=lf
+
+# PowerShell scripts can keep CRLF (Windows native)
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary

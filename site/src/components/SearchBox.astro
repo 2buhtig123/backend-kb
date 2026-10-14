@@ -1,0 +1,117 @@
+---
+/**
+ * 全站搜索（基于 Pagefind）
+ * 用户点击 Header 的搜索按钮触发模态框
+ */
+---
+
+<div
+  id="search-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-slate-900">
+    <div id="search-container" class="p-4"></div>
+  </div>
+</div>
+
+<script>
+  // Pagefind 搜索
+  async function initPagefind() {
+    try {
+      // @ts-ignore - Pagefind 是动态加载的
+      const pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+      // @ts-ignore
+      await pagefind.options({ excerptLength: 30 });
+      // @ts-ignore
+      await pagefind.init();
+      return pagefind;
+    } catch (e) {
+      console.warn('Pagefind 不可用，可能还未构建搜索索引', e);
+      return null;
+    }
+  }
+
+  let pagefindInstance: any = null;
+
+  async function openSearch() {
+    const modal = document.getElementById('search-modal');
+    const container = document.getElementById('search-container');
+    if (!modal || !container) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+
+    if (!pagefindInstance) {
+      container.innerHTML = '<div class="py-12 text-center text-sm text-slate-500">加载中…</div>';
+      pagefindInstance = await initPagefind();
+    }
+
+    if (!pagefindInstance) {
+      container.innerHTML =
+        '<div class="py-12 text-center text-sm text-slate-500">搜索索引未构建。请先运行 npm run build。</div>';
+      return;
+    }
+
+    // 简单搜索实现
+    container.innerHTML = `
+      <input
+        type="text"
+        id="pagefind-input"
+        placeholder="搜索标题、内容…"
+        class="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800"
+        autocomplete="off"
+      />
+      <div id="pagefind-results" class="mt-4 max-h-96 overflow-y-auto"></div>
+    `;
+
+    const input = document.getElementById('pagefind-input') as HTMLInputElement;
+    const results = document.getElementById('pagefind-results') as HTMLDivElement;
+
+    input?.focus();
+
+    input?.addEventListener('input', async () => {
+      const q = input.value.trim();
+      if (!q) {
+        results.innerHTML = '<div class="py-6 text-center text-sm text-slate-500">输入关键词开始搜索</div>';
+        return;
+      }
+      // @ts-ignore
+      const search = await pagefindInstance.search(q);
+      if (search.results.length === 0) {
+        results.innerHTML = '<div class="py-6 text-center text-sm text-slate-500">未找到结果</div>';
+        return;
+      }
+      results.innerHTML = search.results
+        .slice(0, 8)
+        .map(
+          (r: any) => `
+        <a href="${r.url}" class="block rounded-md border border-transparent p-3 hover:border-blue-200 hover:bg-blue-50 dark:hover:border-blue-900 dark:hover:bg-blue-950/30">
+          <div class="text-sm font-medium text-slate-900 dark:text-white">${r.meta.title}</div>
+          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">${r.excerpt}</div>
+        </a>
+      `,
+        )
+        .join('');
+    });
+  }
+
+  function closeSearch() {
+    const modal = document.getElementById('search-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  // 触发器
+  document.getElementById('search-trigger')?.addEventListener('click', openSearch);
+  document.getElementById('search-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeSearch();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSearch();
+  });
+</script>

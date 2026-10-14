@@ -1,0 +1,83 @@
+---
+/**
+ * 文档详情页：/docs/basics/01-xxx, /docs/interview/01-xxx, ...
+ */
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((doc) => ({
+    params: { slug: doc.id.replace(/\.md$/, '') },
+    props: { doc },
+  }));
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
+
+// 提取纯文本简介
+const description =
+  doc.data.description ??
+  (() => {
+    const lines = doc.body?.split('\n') ?? [];
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t || t.startsWith('#') || t.startsWith('>') || t.startsWith('-') || t.startsWith('|') || t.startsWith('```')) continue;
+      return t.replace(/[*_`]/g, '').slice(0, 150);
+    }
+    return '';
+  })();
+---
+
+<DocsLayout
+  title={doc.data.title}
+  description={description}
+  module={doc.data.module}
+  frontmatter={{ headings }}
+>
+  <!-- 文章头 -->
+  <header class="mb-8 pb-8 border-b border-slate-200 dark:border-slate-800">
+    <nav class="mb-3 text-sm text-slate-500 dark:text-slate-400">
+      <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">首页</a>
+      <span class="mx-1">/</span>
+      <a href={`/${doc.data.module}`} class="hover:text-blue-600 dark:hover:text-blue-400">
+        {doc.data.module === 'basics' && '基础知识'}
+        {doc.data.module === 'interview' && '八股题库'}
+        {doc.data.module === 'autumn-recruit' && '秋招汇总'}
+        {doc.data.module === 'social-recruit' && '社招汇总'}
+        {doc.data.module === 'internship' && '实习汇总'}
+        {doc.data.module === 'tools' && '工具资源'}
+      </a>
+    </nav>
+    <h1 class="text-balance text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
+      {doc.data.title}
+    </h1>
+    {description && (
+      <p class="mt-3 text-balance text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+        {description}
+      </p>
+    )}
+  </header>
+
+  <!-- 正文 -->
+  <div class="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:font-bold prose-h2:mt-12 prose-h2:text-2xl prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-2 prose-h3:mt-8 prose-h3:text-xl dark:prose-h2:border-slate-800">
+    <Content />
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="mt-16 flex items-center justify-between border-t border-slate-200 pt-6 text-sm dark:border-slate-800">
+    <a href={`/${doc.data.module}`} class="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">
+      ← 返回
+      {doc.data.module === 'basics' && '基础知识'}
+      {doc.data.module === 'interview' && '八股题库'}
+      {doc.data.module === 'autumn-recruit' && '秋招汇总'}
+      {doc.data.module === 'social-recruit' && '社招汇总'}
+      {doc.data.module === 'internship' && '实习汇总'}
+      {doc.data.module === 'tools' && '工具资源'}
+    </a>
+    <a href="/" class="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">
+      首页 →
+    </a>
+  </nav>
+</DocsLayout>

@@ -1,0 +1,53 @@
+# ============================================================
+# 数字 IC 后端求职知识库 - 根目录 .gitignore
+# ============================================================
+
+# ---- Node / Astro 构建产物（重建即可） ----
+node_modules/
+.pnpm-store/
+dist/
+dist-en/
+.astro/
+.cache/
+
+# ---- 部署包（用户按需在本地重建，不入库） ----
+deploy-ready.zip
+deploy-en.zip
+dist.tar.gz
+deploy-ready.tar.gz
+
+# ---- 环境与日志 ----
+.env
+.env.production
+.env.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ---- 编辑器 / IDE ----
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ---- PowerShell / Shell 临时文件 ----
+*.tmp
+*.bak
+
+# ---- 防止站点关键文件意外被忽略 ----
+!site/src/
+!site/astro.config.mjs
+!site/package.json
+!site/tailwind.config.mjs
+!site/tsconfig.json
