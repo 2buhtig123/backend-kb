@@ -167,3 +167,4 @@ npm run build
 ## 📜 License
 
 CC BY-NC-SA 4.0
+> 🚀 部署测试：本站由 GitHub + Netlify 自动部署，每次 push 到 site/ 目录的改动会自动上线。
