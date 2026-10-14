@@ -66,7 +66,7 @@
   }
 
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700;
+    @apply rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-900/[0.03] transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-600/[0.06] dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700;
   }
 
   .badge {

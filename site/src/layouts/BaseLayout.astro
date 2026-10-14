@@ -53,10 +53,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin)
     <!-- Title -->
     <title>{title}</title>
 
-    <!-- 主题检测 - 避免闪烁 -->
+    <!-- 主题检测 - 避免闪烁（默认浅色，仅手动切换过才用暗色） -->
     <script is:inline>
-      const theme = localStorage.getItem('theme') ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const theme = localStorage.getItem('theme') || 'light';
       document.documentElement.classList.toggle('dark', theme === 'dark');
     </script>
 

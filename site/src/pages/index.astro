@@ -73,20 +73,26 @@ const totalDocs = allDocs.length;
   description="面向数字 IC 后端（PD/CTS/PV/Low Power）求职者的开源知识库"
 >
   <!-- Hero -->
-  <section class="relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
-    <div class="absolute inset-0 bg-grid-slate opacity-30 dark:opacity-20"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white dark:from-slate-950 dark:via-transparent dark:to-slate-950"></div>
+  <section class="relative overflow-hidden border-b border-slate-200/80 dark:border-slate-800">
+    <!-- 柔和光晕背景 -->
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -top-32 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-blue-100/70 blur-3xl dark:bg-blue-950/40"></div>
+      <div class="absolute -top-16 right-[10%] h-64 w-64 rounded-full bg-sky-100/80 blur-3xl dark:bg-sky-950/40"></div>
+      <div class="absolute -top-16 left-[10%] h-64 w-64 rounded-full bg-indigo-100/60 blur-3xl dark:bg-indigo-950/30"></div>
+      <div class="absolute inset-0 bg-grid-slate opacity-30 dark:opacity-15"></div>
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white dark:from-slate-950/40 dark:via-transparent dark:to-slate-950"></div>
 
     <div class="container-wide relative py-20 lg:py-28">
       <div class="mx-auto max-w-3xl text-center">
-        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300">
+        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-medium text-blue-700 shadow-sm dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300">
           <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500"></span>
           {totalDocs} 篇内容 · 持续更新中
         </div>
 
         <h1 class="text-balance text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl dark:text-white">
           数字 IC 后端
-          <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <span class="bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-500 bg-clip-text text-transparent">
             求职知识库
           </span>
         </h1>
@@ -100,7 +106,7 @@ const totalDocs = allDocs.length;
         <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
             href="/basics"
-            class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-blue-700"
+            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-blue-600/25 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30"
           >
             开始学习
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -108,10 +114,10 @@ const totalDocs = allDocs.length;
             </svg>
           </a>
           <a
-            href="https://github.com/your-org/backend-kb"
+            href="https://github.com/2buhtig123/backend-kb"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -146,11 +152,11 @@ const totalDocs = allDocs.length;
               <div class="flex items-center gap-3">
                 <div
                   class:list={[
-                    'flex h-10 w-10 items-center justify-center rounded-lg text-xl',
-                    m.color === 'blue' && 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
-                    m.color === 'purple' && 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300',
-                    m.color === 'amber' && 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-                    m.color === 'green' && 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300',
+                    'flex h-10 w-10 items-center justify-center rounded-lg text-xl shadow-sm',
+                    m.color === 'blue' && 'bg-gradient-to-br from-blue-100 to-sky-100 text-blue-700 dark:from-blue-950/60 dark:to-sky-950/60 dark:text-blue-300',
+                    m.color === 'purple' && 'bg-gradient-to-br from-purple-100 to-fuchsia-100 text-purple-700 dark:from-purple-950/60 dark:to-fuchsia-950/60 dark:text-purple-300',
+                    m.color === 'amber' && 'bg-gradient-to-br from-amber-100 to-orange-100 text-amber-700 dark:from-amber-950/60 dark:to-orange-950/60 dark:text-amber-300',
+                    m.color === 'green' && 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-700 dark:from-green-950/60 dark:to-emerald-950/60 dark:text-green-300',
                   ]}
                 >
                   {m.icon}
@@ -181,29 +187,29 @@ const totalDocs = allDocs.length;
   </section>
 
   <!-- 数据展示 -->
-  <section class="border-y border-slate-200 bg-slate-50 py-12 dark:border-slate-800 dark:bg-slate-950">
+  <section class="border-y border-slate-200/80 bg-slate-50/80 py-12 dark:border-slate-800 dark:bg-slate-950">
     <div class="container-wide">
       <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
         <div class="text-center">
-          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 lg:text-4xl">
+          <div class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
             {totalDocs}+
           </div>
           <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">原创内容</div>
         </div>
         <div class="text-center">
-          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 lg:text-4xl">
+          <div class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
             {MODULES.length}
           </div>
           <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">内容模块</div>
         </div>
         <div class="text-center">
-          <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 lg:text-4xl">
+          <div class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
             100%
           </div>
           <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">开源 CC 协议</div>
         </div>
         <div class="text-center">
-          <div class="text-3xl font-bold text-green-600 dark:text-green-400 lg:text-4xl">
+          <div class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
             0¥
           </div>
           <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">永久免费访问</div>
@@ -214,7 +220,7 @@ const totalDocs = allDocs.length;
 
   <!-- CTA -->
   <section class="container-wide py-16">
-    <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-8 text-white shadow-xl md:p-12">
+    <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-sky-500 p-8 text-white shadow-xl shadow-blue-600/20 md:p-12">
       <div class="mx-auto max-w-2xl text-center">
         <h2 class="text-balance text-3xl font-bold md:text-4xl">
           求职是一个"信息战 + 持久战"
