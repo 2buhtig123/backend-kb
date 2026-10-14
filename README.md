@@ -142,3 +142,5 @@ MIT License - 你可以自由复用、修改、商用。
 > 🚀 本站由 GitHub + Netlify 自动部署，每次 push 自动更新。
 
 > 🚀 本站由 GitHub + Netlify 自动部署，每次 push 自动更新。
+
+> 🚀 本站由 GitHub + Netlify 自动部署，每次 push 自动更新。
