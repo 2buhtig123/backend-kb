@@ -50,10 +50,12 @@ cd "$SCRIPT_DIR"
 echo "${C_BLUE}==> 当前目录:${C_RESET} $(pwd)"
 echo ""
 
-# ---- 1) 初始化 git 仓库 ----
+# ---- 1) 初始化 git 仓库（兼容 Git < 2.28 的 -b 参数） ----
 echo "${C_BLUE}==> 1) 初始化 Git 仓库${C_RESET}"
 if [[ ! -d ".git" ]]; then
-  git init -b "$BRANCH" > /dev/null
+  git init > /dev/null
+  # 旧版 Git 不支持 -b，用 symbolic-ref 切分支
+  git symbolic-ref HEAD "refs/heads/$BRANCH" 2>/dev/null || true
   echo "   ${C_GREEN}✓${C_RESET} 已初始化，分支: ${BRANCH}"
 else
   echo "   ${C_GREEN}✓${C_RESET} .git 已存在"
@@ -63,7 +65,7 @@ else
     if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
       git checkout "$BRANCH"
     else
-      git checkout -b "$BRANCH"
+      git checkout -b "$BRANCH" 2>/dev/null || git branch -m "$BRANCH"
     fi
   fi
 fi
