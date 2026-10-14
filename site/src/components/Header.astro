@@ -3,6 +3,7 @@
  * 顶部导航栏
  */
 const pathname = Astro.url.pathname;
+import Icon from './Icon.astro';
 
 const navLinks = [
   { href: '/', label: '首页' },
@@ -27,9 +28,9 @@ const isActive = (href: string) => {
     <!-- Logo -->
     <a href="/" class="flex items-center gap-2.5">
       <div
-        class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 text-lg font-bold text-white shadow-md shadow-blue-600/20"
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-md shadow-blue-600/20"
       >
-        🔗
+        <Icon name="logo" class="h-5 w-5" />
       </div>
       <div class="flex flex-col">
         <span class="text-base font-bold leading-tight text-slate-900 dark:text-white">

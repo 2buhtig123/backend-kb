@@ -1,11 +1,11 @@
 ---
-title: "Sign-off 综合：芯片量产前的最后一道闸门"
-description: "Tape-out 倒推时间轴（5nm 实际）："
+title: "Sign-off 综述：时序、物理、功耗与可靠性"
+description: "量产前 Sign-off 全景：时序签核、物理验证、功耗完整性、可靠性检查与 tape-out 时间线。"
 module: basics
 order: 9
 ---
 
-# Sign-off 综合：芯片量产前的最后一道闸门
+# Sign-off 综述：时序、物理、功耗与可靠性
 
 > "所有违例都修完了，sign-off 报告一交，是不是就可以流片了？"  
 > **不一定**。Sign-off 不只是"某一项不违例"——它是 STA / IR / EM / PV / DFM 五大检查 **同时**通过、跨工具**互相验证**才合格。
@@ -49,17 +49,17 @@ order: 9
 Tape-out 倒推时间轴（5nm 实际）：
 
 T0-6 月：设计阶段 RTL 完成
-     ↓
+   ↓
 T0-3 月：Floorplan + Initial PNR 完成
-     ↓
+   ↓
 T0-2 月：Hard IP + Initial Sign-off（preliminary）
-     ↓
+   ↓
 T0-1 月：Final Sign-off（完整 5 大检查）
-     ↓
+   ↓
 T0：   Final GDSII 上传到 foundary
-     ↓
+   ↓
 T0+1.5-3 月：Foundary 回片（量产硅）
-     ↓
+   ↓
 T0+6 月：量产
 ```
 
@@ -177,35 +177,35 @@ Signed: [Timing Engineer], [Sign-off Lead]
 ```tcl
 # 一份能用于 Sign-off 的 PrimeTime 闭环 TCL
 proc run_signoff { corner mode } {
-    set_analysis_view -setup $corner -hold $corner_opposite
+  set_analysis_view -setup $corner -hold $corner_opposite
     
-    # 加载对应 SDC
-    if {$mode eq "func"} { source $top_sdc_func } else { source $top_sdc_scan }
+  # 加载对应 SDC
+  if {$mode eq "func"} { source $top_sdc_func } else { source $top_sdc_scan }
     
-    # 读 netlist + lib + SPEF + SDF
-    read_verilog  $top_netlist
-    read_parasitics ./spef/$corner.spef
-    read_sdf       ./sdf/$corner.sdf
+  # 读 netlist + lib + SPEF + SDF
+  read_verilog  $top_netlist
+  read_parasitics ./spef/$corner.spef
+  read_sdf       ./sdf/$corner.sdf
     
-    update_timing -full
+  update_timing -full
     
-    # 三类报告
-    redirect reports/setup_${corner}_${mode}.rpt { 
-        report_timing -delay max -max_paths 1000 -sort_by group 
-    }
-    redirect reports/hold_${corner}_${mode}.rpt { 
-        report_timing -delay min -max_paths 1000 -sort_by group 
-    }
-    redirect reports/min_pulse_${corner}_${mode}.rpt { 
-        report_analysis_coverage -check_type min_pulse_width 
-    }
+  # 三类报告
+  redirect reports/setup_${corner}_${mode}.rpt { 
+      report_timing -delay max -max_paths 1000 -sort_by group 
+  }
+  redirect reports/hold_${corner}_${mode}.rpt { 
+      report_timing -delay min -max_paths 1000 -sort_by group 
+  }
+  redirect reports/min_pulse_${corner}_${mode}.rpt { 
+      report_analysis_coverage -check_type min_pulse_width 
+  }
 }
 
 # 跑全 MMMC
 foreach corner $all_corners {
-    foreach mode $all_modes {
-        run_signoff $corner $mode
-    }
+  foreach mode $all_modes {
+      run_signoff $corner $mode
+  }
 }
 ```
 
@@ -309,7 +309,7 @@ report_em       -corner {wc_setup} -threshold 0.70
 find_ir_drop_hotspot -threshold 0.05 -report ir_hot.rpt
 # 在 hot spot 区域插 decap
 foreach region [parse_ir_hotspot ir_hot.rpt] {
-    add_decap_cells -region $region -cell DECAP4 -fill_density 0.5
+  add_decap_cells -region $region -cell DECAP4 -fill_density 0.5
 }
 ```
 
@@ -375,30 +375,30 @@ set calibre_rule_check /remote/data/calibre/$TECH/main.drc.rs
 exec mkdir -p reports/$PROJECT/calibre/
 set rpt_drc reports/$PROJECT/calibre/drc.rpt
 exec calibre -drc -hier -turbo -hyper -64 \
-    -runset $calibre_rule_check \
-    mychip.gdsii \
-    > $rpt_drc
+  -runset $calibre_rule_check \
+  mychip.gdsii \
+  > $rpt_drc
 
 # LVS 运行
 set rpt_lvs reports/$PROJECT/calibre/lvs.rpt
 exec calibre -lvs -hier -turbo -hyper -64 \
-    -runset $calibre_rule_check \
-    -layout mychip.gdsii \
-    -source netlist.v \
-    > $rpt_lvs
+  -runset $calibre_rule_check \
+  -layout mychip.gdsii \
+  -source netlist.v \
+  > $rpt_lvs
 
 # ANT
 set rpt_ant reports/$PROJECT/calibre/antenna.rpt
 exec calibre -ant -hier -turbo \
-    -runset $calibre_rule_check \
-    mychip.gdsii \
-    > $rpt_ant
+  -runset $calibre_rule_check \
+  mychip.gdsii \
+  > $rpt_ant
 
 # Check 报告
 foreach f [list $rpt_drc $rpt_lvs $rpt_ant] {
-    if { [exec grep -c "ERROR\|RULECHECK" $f] > 0 } {
-        puts "warning: $f has violations, manual check needed"
-    }
+  if { [exec grep -c "ERROR\|RULECHECK" $f] > 0 } {
+      puts "warning: $f has violations, manual check needed"
+  }
 }
 ```
 
@@ -410,9 +410,9 @@ LVS 检查 GDSII 与 netlist 是否**电气等价**。
 需要做的：
 - Take P&R 后的 netlist (.v with .lib)
 - Run Calibre LVS：
-  - layout : GDSII
-  - source : netlist
-  - 检查管脚一致、电源地连接、短路、开路
+- layout : GDSII
+- source : netlist
+- 检查管脚一致、电源地连接、短路、开路
 ```
 
 ### 5.4 ANT 天线效应
@@ -475,13 +475,13 @@ os.makedirs(SUITE, exist_ok=True)
 # ---------- Step 1: STA Sign-off ----------
 print(f"[{datetime.now():%H:%M:%S}] Running STA Sign-off...")
 for corner in ALL_CORNERS:
-    for mode in ALL_MODES:
-        cmd = f"""
-        cd {SUITE}/sta
-        primetime -f ../sta_run.tcl -corner {corner} -mode {mode}
-        """
-        if subprocess.run(cmd, shell=True).returncode != 0:
-            send_alert(f"STA signoff failed: {corner} {mode}")
+  for mode in ALL_MODES:
+      cmd = f"""
+      cd {SUITE}/sta
+      primetime -f ../sta_run.tcl -corner {corner} -mode {mode}
+      """
+      if subprocess.run(cmd, shell=True).returncode != 0:
+          send_alert(f"STA signoff failed: {corner} {mode}")
 
 # ---------- Step 2: IR / EM Sign-off ----------
 print(f"[{datetime.now():%H:%M:%S}] Running IR / EM Sign-off...")
@@ -494,18 +494,18 @@ subprocess.run(cmd, shell=True, check=True)
 # ---------- Step 3: PV / Calibre Sign-off ----------
 print(f"[{datetime.now():%H:%M:%S}] Running Calibre Sign-off...")
 for check in ["drc", "lvs", "ant", "perc"]:
-    cmd = f"""
-    cd {SUITE}/calibre
-    calibre -{check} -hier -turbo -runset tech/{check}.rs {PROJECT}.gdsii
-    """
-    subprocess.run(cmd, shell=True)
+  cmd = f"""
+  cd {SUITE}/calibre
+  calibre -{check} -hier -turbo -runset tech/{check}.rs {PROJECT}.gdsii
+  """
+  subprocess.run(cmd, shell=True)
 
 # ---------- Step 4: 报告聚合 ----------
 print(f"[{datetime.now():%H:%M:%S}] Aggregating reports...")
 result_md = generate_summary_report(SUITE)
 send_email(recipients=["pm@", "foundary@"],
-           subject=f"[{PROJECT}] Sign-off {datetime.now():%Y%m%d}",
-           body=result_md)
+         subject=f"[{PROJECT}] Sign-off {datetime.now():%Y%m%d}",
+         body=result_md)
 print(f"[{datetime.now():%H:%M:%S}] Sign-off Complete. Summary: {SUITE}/summary.html")
 ```
 
@@ -515,18 +515,18 @@ print(f"[{datetime.now():%H:%M:%S}] Sign-off Complete. Summary: {SUITE}/summary.
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chip X Sign-off Dashboard</title>
+  <title>Chip X Sign-off Dashboard</title>
 </head>
 <body>
-    <h1>Sign-off Status: 2026-10-14</h1>
-    <ul>
-        <li><b>STA</b>: <span style="color:green">PASS</span> (8/8 corners)</li>
-        <li><b>IR</b>: <span style="color:green">PASS</span> (max drop 38mV &lt; 50mV)</li>
-        <li><b>EM</b>: <span style="color:green">PASS</span> (max 65%)</li>
-        <li><b>DRC</b>: <span style="color:red">FAIL</span> (3 violations in io block)</li>
-        <li><b>LVS</b>: <span style="color:green">PASS</span></li>
-        <li><b>ANT</b>: <span style="color:yellow">PASS with 5 waivable</span></li>
-    </ul>
+  <h1>Sign-off Status: 2026-10-14</h1>
+  <ul>
+      <li><b>STA</b>: <span style="color:green">PASS</span> (8/8 corners)</li>
+      <li><b>IR</b>: <span style="color:green">PASS</span> (max drop 38mV &lt; 50mV)</li>
+      <li><b>EM</b>: <span style="color:green">PASS</span> (max 65%)</li>
+      <li><b>DRC</b>: <span style="color:red">FAIL</span> (3 violations in io block)</li>
+      <li><b>LVS</b>: <span style="color:green">PASS</span></li>
+      <li><b>ANT</b>: <span style="color:yellow">PASS with 5 waivable</span></li>
+  </ul>
 </body>
 </html>
 ```
@@ -644,7 +644,7 @@ AI tool 的输出：
 
 ---
 
-## 🎯 Sign-off Lead 上岗第 1 周做什么？
+## Sign-off Lead 上岗第 1 周做什么？
 
 | Day | 做什么 |
 |---|---|
@@ -658,7 +658,7 @@ AI tool 的输出：
 
 ---
 
-## ⚠️ 实战要避的 5 个坑
+## 实战要避的 5 个坑
 
 1. **不要把 IR/EM/STA 视作独立** —— IR drop 影响 cell VDD，影响 cell delay，影响 STA！须顺序做。
 2. **不要相信"自动化跑通就是 sign-off"** —— 必须 engineer 看过每个违例/可接受 waive。

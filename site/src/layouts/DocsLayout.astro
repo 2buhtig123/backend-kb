@@ -21,12 +21,12 @@ const { title, description, module, frontmatter, hideSidebar = false } = Astro.p
 const allDocs = await getCollection('docs');
 
 const MODULE_META: Record<string, { title: string; icon: string; slug: string }> = {
-  basics: { title: '基础知识', icon: '📚', slug: 'basics' },
-  interview: { title: '八股题库', icon: '📝', slug: 'interview' },
-  'autumn-recruit': { title: '秋招汇总', icon: '🍂', slug: 'autumn-recruit' },
-  'social-recruit': { title: '社招汇总', icon: '💼', slug: 'social-recruit' },
-  internship: { title: '实习汇总', icon: '🎯', slug: 'internship' },
-  tools: { title: '工具资源', icon: '🛠', slug: 'tools' },
+  basics: { title: '基础知识', icon: 'book', slug: 'basics' },
+  interview: { title: '八股题库', icon: 'quiz', slug: 'interview' },
+  'autumn-recruit': { title: '秋招汇总', icon: 'calendar', slug: 'autumn-recruit' },
+  'social-recruit': { title: '社招汇总', icon: 'briefcase', slug: 'social-recruit' },
+  internship: { title: '实习汇总', icon: 'target', slug: 'internship' },
+  tools: { title: '工具资源', icon: 'tool', slug: 'tools' },
 };
 
 const navItems = allDocs
@@ -46,7 +46,7 @@ const navItems = allDocs
         <Sidebar
           module={module}
           moduleTitle={MODULE_META[module]?.title ?? ''}
-          moduleIcon={MODULE_META[module]?.icon ?? '📄'}
+          moduleIcon={MODULE_META[module]?.icon ?? 'doc'}
           moduleSlug={MODULE_META[module]?.slug ?? module}
           items={navItems}
           currentSlug={Astro.url.pathname.replace(/^\/docs\//, '').replace(/\/$/, '')}

@@ -1,11 +1,11 @@
 ---
-title: "布局布线（PNR / APR）— 后端工程师的日常"
-description: "Floorplan → Placement → CTS → Routing → Optimization"
+title: "布局布线（PNR / APR）：从 Floorplan 到 Routing"
+description: "PNR 完整流程：Floorplan、Placement、CTS、Routing 与优化，各阶段的核心指标与常见问题。"
 module: basics
 order: 3
 ---
 
-# 布局布线（PNR / APR）— 后端工程师的日常
+# 布局布线（PNR / APR）：从 Floorplan 到 Routing
 
 > **什么是 PNR？** PNR（Place and Route，布局布线），也叫 APR（Auto Placement and Routing）。
 > 它把综合后的**门级网表**变成**物理版图（GDSII）**：决定每个 cell 放在哪里、每条线怎么走。
@@ -44,15 +44,15 @@ order: 3
 
 ```
 Floorplan → Placement → CTS → Routing → Optimization
-    │           │         │        │            │
-    │           │         │        │            └→ 时序/功耗/面积再迭代
-    │           │         │        └→ Global + Detail Routing
-    │           │         └→ Clock Tree Synthesis
-    │           └→ Standard Cell Placement
-    └→ 电源规划 + Macro 摆放 + Blockage
+  │           │         │        │            │
+  │           │         │        │            └→ 时序/功耗/面积再迭代
+  │           │         │        └→ Global + Detail Routing
+  │           │         └→ Clock Tree Synthesis
+  │           └→ Standard Cell Placement
+  └→ 电源规划 + Macro 摆放 + Blockage
 ```
 
-> 📌 **面试考点**：面试官问"PNR 流程有哪些步骤"？必须答出 **Floorplan → Placement → CTS → Routing → Optimization** 五大阶段，缺一不可。
+> **面试考点**：面试官问"PNR 流程有哪些步骤"？必须答出 **Floorplan → Placement → CTS → Routing → Optimization** 五大阶段，缺一不可。
 
 ---
 
@@ -74,8 +74,8 @@ Floorplan → Placement → CTS → Routing → Optimization
 
 #### 关键指标
 - **Core utilization** = 标准单元面积 / Core 内总面积
-  - 太低（< 50%）：面积浪费
-  - 太高（> 85%）：拥塞风险
+- 太低（< 50%）：面积浪费
+- 太高（> 85%）：拥塞风险
 - **Channel utilization**：通道密度
 
 #### 必背概念
@@ -203,14 +203,14 @@ Floorplan → Placement → CTS → Routing → Optimization
 ```tcl
 # 示例：Innovus MMMC
 create_analysis_view \
-    -name func_ss \
-    -constraint_mode func \
-    -delay_corner ss_125c
+  -name func_ss \
+  -constraint_mode func \
+  -delay_corner ss_125c
 
 create_analysis_view \
-    -name func_ff \
-    -constraint_mode func \
-    -delay_corner ff_-40c
+  -name func_ff \
+  -constraint_mode func \
+  -delay_corner ff_-40c
 ```
 
 工具把 view 集合起来，PNR 时同时优化多个 view。
@@ -317,7 +317,7 @@ create_analysis_view \
 
 ---
 
-## 📝 自测题
+## 自测题
 
 1. PNR 的五大阶段是什么？每个阶段的目标是什么？
 2. Floorplan 中 Core utilization 的合理范围是多少？

@@ -1,6 +1,6 @@
 ---
 title: "MMMC（Multi-Mode Multi-Corner）：先进工艺调度核心"
-description: "某 5nm SoC：12 个电源域 + 4 个时钟 + 5 种 PVT 环境 + 2 种功耗模式。"
+description: "多模式多角分析：场景组合方法、view 定义、MMMC 在 Innovus 与 PrimeTime 中的配置实践。"
 module: basics
 order: 7
 ---
@@ -43,9 +43,9 @@ order: 7
 
 ```
 Mode  = 静态配置改变 → SDC 改变 → 时序路径改变
-       例：func 模式（全路径）+ scan 模式（DFT 专用路径）
+     例：func 模式（全路径）+ scan 模式（DFT 专用路径）
 Corner = 物理环境改变 → cell delay 改变 → slack 改变
-       例：ss_125c_corner（高温慢速）+ ff_-40c（年轻快速）
+     例：ss_125c_corner（高温慢速）+ ff_-40c（年轻快速）
 ```
 
 关键认知：**Mode 和 Corner 是正交的维度，可以叉乘跑**。
@@ -194,18 +194,18 @@ Scan Sign-off 必备 4 corner：
 
 # ---------- 1. 加载 libs ----------
 set all_libs_wc "
-    my_tech/stdcell/my_tech_ss_125c.lib
-    my_tech/sram/sram_ss_125c.lib
-    my_tech/io/io_ss_125c.lib
-    my_tech/io/io_ff_-40c.lib
+  my_tech/stdcell/my_tech_ss_125c.lib
+  my_tech/sram/sram_ss_125c.lib
+  my_tech/io/io_ss_125c.lib
+  my_tech/io/io_ff_-40c.lib
 "
 set all_libs_bc "
-    my_tech/stdcell/my_tech_ff_-40c.lib
-    my_tech/sram/sram_ff_-40c.lib
-    my_tech/io/io_ff_-40c.lib
+  my_tech/stdcell/my_tech_ff_-40c.lib
+  my_tech/sram/sram_ff_-40c.lib
+  my_tech/io/io_ff_-40c.lib
 "
 set all_libs_typ "
-    my_tech/stdcell/my_tech_tt_25c.lib
+  my_tech/stdcell/my_tech_tt_25c.lib
 "
 
 # ---------- 2. 创建分析视图 ----------
@@ -224,12 +224,12 @@ set_analysis_mode -si_enable true
 
 ### 5.2 Constraint 与 Corner 分离原则
 
-✅ **正确做法**：
+**正确做法**：
 - SDC 文件只描述**时序关系**（clock、约束、例外）
 - 每个 corner 把 SDC 配相应 lib + delay_corner（spec file）
 - 每次 STA 跑都对应一个 **Constraint × Delay Corner** 对
 
-❌ **错误做法**：
+**错误做法**：
 - 把所有 lib 锁在一个 SDC 里
 - 把 SDC 文件按工艺复制多份
 - 让 SDC 跑 N 个 process 而不只是 mode
@@ -250,13 +250,13 @@ set_db lib_search_path ./libs
 
 # 加载库
 create_library_set -name wc_lib \
-    -timing { [list wc_lib/stdcell_ss.lib wc_lib/sram_ss.lib wc_lib/io_ss.lib] } \
-    -si    { [list wc_lib/stdcell_ss.siLib] } \
-    -power { [list wc_lib/stdcell_ss.lib] }
+  -timing { [list wc_lib/stdcell_ss.lib wc_lib/sram_ss.lib wc_lib/io_ss.lib] } \
+  -si    { [list wc_lib/stdcell_ss.siLib] } \
+  -power { [list wc_lib/stdcell_ss.lib] }
 
 create_library_set -name bc_lib \
-    -timing { [list bc_lib/stdcell_ff.lib bc_lib/sram_ff.lib] } \
-    -si    { [list bc_lib/stdcell_ff.siLib] }
+  -timing { [list bc_lib/stdcell_ff.lib bc_lib/sram_ff.lib] } \
+  -si    { [list bc_lib/stdcell_ff.siLib] }
 
 # 2. 创建 Opcond (Operating Conditions)
 create_opcond -name wc_opc -process ss -voltage 0.88 -temperature 125
@@ -368,7 +368,7 @@ MMMC 自动检查清单：
 
 ---
 
-## 🎯 你读完应该会什么
+## 你读完应该会什么
 
 | 能力 | 验证方式 |
 |---|---|

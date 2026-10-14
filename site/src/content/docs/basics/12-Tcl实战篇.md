@@ -1,6 +1,6 @@
 ---
 title: "Tcl 实战：后端工程师必备的工程脚本手册"
-description: "1. proc 调用 vs 内置命令搞不清："
+description: "后端工程师 Tcl 脚本实战：常用语法、设计加载模板、报告解析与自动化流程搭建。"
 module: basics
 order: 11
 ---
@@ -62,19 +62,19 @@ order: 11
 
 ```
 1. proc 调用 vs 内置命令搞不清：
-   info procs  ← 看所有的 proc
-   info commands  ← 看所有的 command (包括 tool 内置)
+ info procs  ← 看所有的 proc
+ info commands  ← 看所有的 command (包括 tool 内置)
 
 2. 全局变量 vs local variable：
-   set x 1 ;# global
-   proc foo {} { set x 2 ;# local, 不影响全局 }
-   要改全局：global x ; set x 2
+ set x 1 ;# global
+ proc foo {} { set x 2 ;# local, 不影响全局 }
+ 要改全局：global x ; set x 2
 
 3. 嵌套 namespace：
-   namespace eval company::module {
-       proc my_proc {} { }
-   }
-   调用：company::module::my_proc
+ namespace eval company::module {
+     proc my_proc {} { }
+ }
+ 调用：company::module::my_proc
 ```
 
 ---
@@ -85,19 +85,19 @@ order: 11
 
 ```tcl
 proc print_info {msg} {
-    set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
-    puts "INFO  \[$time_stamp\] $msg"
-    flush stdout
+  set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
+  puts "INFO  \[$time_stamp\] $msg"
+  flush stdout
 }
 proc print_warn {msg} {
-    set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
-    puts "WARN  \[$time_stamp\] $msg"
-    flush stdout
+  set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
+  puts "WARN  \[$time_stamp\] $msg"
+  flush stdout
 }
 proc print_error {msg} {
-    set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
-    puts "ERROR \[$time_stamp\] $msg"
-    flush stdout
+  set time_stamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
+  puts "ERROR \[$time_stamp\] $msg"
+  flush stdout
 }
 
 # 用法
@@ -109,10 +109,10 @@ print_error "Cannot find timing constraint file"
 
 ```tcl
 proc ensure_path {path} {
-    if {![file exists $path]} {
-        file mkdir $path
-        print_info "Created path: $path"
-    }
+  if {![file exists $path]} {
+      file mkdir $path
+      print_info "Created path: $path"
+  }
 }
 
 # 用法：自动建 reports/corner/wc_setup/
@@ -124,34 +124,34 @@ ensure_path [file join reports $corner wc_setup]
 ```tcl
 # 加载 design 的通用方法
 proc load_design_library {top_lib_path} {
-    set_db lib_search_path $top_lib_path
-    set_db library {*}[lsort [glob -nocomplain "$top_lib_path/**/*.lib"]]
-    set_db lef_library {*}[lsort [glob -nocomplain "$top_lib_path/**/*.lef"]]
-    set_db qrc_tech_file [glob -nocomplain "$top_lib_path/**/*.qrc"]
-    set_db cap_table_file [glob -nocomplain "$top_lib_path/**/*.captbl"]]
+  set_db lib_search_path $top_lib_path
+  set_db library {*}[lsort [glob -nocomplain "$top_lib_path/**/*.lib"]]
+  set_db lef_library {*}[lsort [glob -nocomplain "$top_lib_path/**/*.lef"]]
+  set_db qrc_tech_file [glob -nocomplain "$top_lib_path/**/*.qrc"]
+  set_db cap_table_file [glob -nocomplain "$top_lib_path/**/*.captbl"]]
 }
 
 # 通用 load_netlist
 proc load_netlist {top_netlist top_sdc top_spef} {
-    set_db init_design_uniquify true
-    set_db init_top_cell [file rootname [file tail $top_netlist]]
-    read_netlist $top_netlist
-    init_design
-    read_sdc $top_sdc
-    read_spef $top_spef
+  set_db init_design_uniquify true
+  set_db init_top_cell [file rootname [file tail $top_netlist]]
+  read_netlist $top_netlist
+  init_design
+  read_sdc $top_sdc
+  read_spef $top_spef
 }
 
 # 通用 report save
 proc save_reports {prefix obj_list args} {
-    foreach_check {rpt_name rpt_type rpt_args} $args {
-        if {[catch {
-            redirect -append reports/${prefix}.${rpt_name} { 
-                $rpt_type {*}$rpt_args 
-            }
-        } err]} {
-            print_warn "Could not save report $rpt_name: $err"
-        }
-    }
+  foreach_check {rpt_name rpt_type rpt_args} $args {
+      if {[catch {
+          redirect -append reports/${prefix}.${rpt_name} { 
+              $rpt_type {*}$rpt_args 
+          }
+      } err]} {
+          print_warn "Could not save report $rpt_name: $err"
+      }
+  }
 }
 ```
 
@@ -159,15 +159,15 @@ proc save_reports {prefix obj_list args} {
 
 ```tcl
 proc safe_run {cmd_name script} {
-    print_info "Running $cmd_name..."
-    if {[catch {uplevel 1 $script} result options]} {
-        print_error "$cmd_name failed: $result"
-        print_error "Options: $options"
-        return -1
-    } else {
-        print_info "$cmd_name completed"
-        return $result
-    }
+  print_info "Running $cmd_name..."
+  if {[catch {uplevel 1 $script} result options]} {
+      print_error "$cmd_name failed: $result"
+      print_error "Options: $options"
+      return -1
+  } else {
+      print_info "$cmd_name completed"
+      return $result
+  }
 }
 
 # 用法
@@ -180,20 +180,20 @@ safe_run "CTS"       { clock_opt ... }
 
 ```tcl
 proc probe_cell {cell_path} {
-    set cell [get_cells $cell_path]
-    if {![sizeof_collection $cell]} {
-        print_warn "Cell $cell_path not found"
-        return
-    }
-    foreach_in_collection c $cell {
-        print_info "=== Probe $c ==="
-        puts "  Reference:  [get_property $c ref_name]"
-        puts "  Size:       [get_property $c size]"
-        puts "  Status:     [get_property $c status]"
-        foreach_in_collection p [get_pins -of $c] {
-            puts "  Pin $p: dir=[get_property $p direction]"
-        }
-    }
+  set cell [get_cells $cell_path]
+  if {![sizeof_collection $cell]} {
+      print_warn "Cell $cell_path not found"
+      return
+  }
+  foreach_in_collection c $cell {
+      print_info "=== Probe $c ==="
+      puts "  Reference:  [get_property $c ref_name]"
+      puts "  Size:       [get_property $c size]"
+      puts "  Status:     [get_property $c status]"
+      foreach_in_collection p [get_pins -of $c] {
+          puts "  Pin $p: dir=[get_property $p direction]"
+      }
+  }
 }
 
 # 用法：probe debug_block/U0/U_inner_reg
@@ -213,71 +213,71 @@ probe_cell "debug_block/U0/U_inner_reg"
 
 # ---------- 1. 工程初始化 ----------
 proc init_project {project_name root} {
-    global env
-    ensure_path ${root}/outputs/${project_name}
-    set_db program_name $project_name
-    set_db init_design_scaffold ${root}/inputs/design.scaffold.v
-    print_info "Init project: $project_name"
+  global env
+  ensure_path ${root}/outputs/${project_name}
+  set_db program_name $project_name
+  set_db init_design_scaffold ${root}/inputs/design.scaffold.v
+  print_info "Init project: $project_name"
 }
 
 # ---------- 2. Floorplan ----------
 proc do_floorplan { } {
-    source scripts/floorplan.tcl
-    print_info "Floorplan done"
+  source scripts/floorplan.tcl
+  print_info "Floorplan done"
 }
 
 # ---------- 3. Placement ----------
 proc do_placement { } {
-    set_db place_opt_initial_place true
-    set_db place_opt_final_place true
-    place_opt_design -prefix place
-    print_info "Placement done"
+  set_db place_opt_initial_place true
+  set_db place_opt_final_place true
+  place_opt_design -prefix place
+  print_info "Placement done"
 }
 
 # ---------- 4. CTS ----------
 proc do_cts { } {
-    set_db cts_target_skew 0.05
-    clock_opt -prefix cts
-    print_info "CTS done"
+  set_db cts_target_skew 0.05
+  clock_opt -prefix cts
+  print_info "CTS done"
 }
 
 # ---------- 5. Routing ----------
 proc do_routing { } {
-    set_db route_opt_detail_active_via_res 1.0
-    route_opt -prefix route
-    print_info "Routing done"
+  set_db route_opt_detail_active_via_res 1.0
+  route_opt -prefix route
+  print_info "Routing done"
 }
 
 # ---------- 6. Optimization ----------
 proc do_opt { } {
-    opt_design -prefix opt
-    print_info "Optimization done"
+  opt_design -prefix opt
+  print_info "Optimization done"
 }
 
 # ---------- 7. Reports ----------
 proc generate_reports { } {
-    redirect reports/summary.rpt {
-        puts "==== Summary Report ===="
-        puts "Total cells: [sizeof_collection [get_cells *]]"
-        puts "Total nets: [sizeof_collection [get_nets *]]"
-        puts "Total delay: [get_property [current_design] total_delay]"
-        report_design -summary
-    }
+  redirect reports/summary.rpt {
+      puts "==== Summary Report ===="
+      puts "Total cells: [sizeof_collection [get_cells *]]"
+      puts "Total nets: [sizeof_collection [get_nets *]]"
+      puts "Total delay: [get_property [current_design] total_delay]"
+      report_design -summary
+  }
 }
 
 # ---------- Main flow ----------
 proc run_pnr_flow { } {
-    set start_time [clock seconds]
+  set start_time [clock seconds]
 
-    safe_run "1. Floorplan"  {do_floorplan}
-    safe_run "2. Placement"  {do_placement}
-    safe_run "3. CTS"        {do_cts}
-    safe_run "4. Routing"    {do_routing}
-    safe_run "5. Optimization" {do_opt}
-    safe_run "6. Reports" {generate_reports}
+  safe_run "1. Floorplan"  {do_floorplan}
+  safe_run "2. Placement"  {do_placement}
+  safe_run "3. CTS"        {do_cts}
+  safe_run "4. Routing"    {do_routing}
+  safe_run "5. Optimization" {do_opt}
+  safe_run "6. Reports" {generate_reports}
 
-    set end_time [clock seconds]
-    print_info "Total PNR time: [expr {$end_time - $start_time}] seconds"
+  set end_time [clock seconds]
+  print_info "Total PNR time: [expr {$end_time - $start_time}] seconds"
 }
 
 # ---------- 主入口 ----------
@@ -294,15 +294,15 @@ run_pnr_flow
 set ALL_CORNERS {{wc_setup ss_0p88_125c} {bc_hold ff_0p95_-40c} {wc_setup_lowV ss_0p88_125c_lowV} {bc_hold_lowV ff_0p83_-40c}}
 
 proc run_pnr_all_corners { } {
-    global ALL_CORNERS
-    foreach corner $ALL_CORNERS {
-        set corner_name [lindex $corner 0]
-        set pvt [lindex $corner 1]
-        set_analysis_view -setup $corner_name -hold $corner_name
-        update_timing -full
-        redirect reports/PNR_${corner_name}.rpt { report_timing -delay max -max_paths 1000 }
-        redirect reports/PNR_${corner_name}_hold.rpt { report_timing -delay min -max_paths 1000 }
-    }
+  global ALL_CORNERS
+  foreach corner $ALL_CORNERS {
+      set corner_name [lindex $corner 0]
+      set pvt [lindex $corner 1]
+      set_analysis_view -setup $corner_name -hold $corner_name
+      update_timing -full
+      redirect reports/PNR_${corner_name}.rpt { report_timing -delay max -max_paths 1000 }
+      redirect reports/PNR_${corner_name}_hold.rpt { report_timing -delay min -max_paths 1000 }
+  }
 }
 
 # 用 run_pnr_all_corners 一次跑全 corner
@@ -316,19 +316,19 @@ proc run_pnr_all_corners { } {
 # ====================================
 
 proc do_live_eco {eco_netlist} {
-    safe_run "Load ECO netlist" {
-        read_netlist $eco_netlist -eco
-    }
-    safe_run "ecoPlace"  { ecoPlace }
-    safe_run "ecoRoute" { ecoRoute }
-    safe_run "ecoOpt" {
-        setOptMode -fixDesign true
-        optDesign -preCTS
-    }
-    safe_run "Update Timing" {
-        update_timing -full
-    }
-    print_info "ECO complete"
+  safe_run "Load ECO netlist" {
+      read_netlist $eco_netlist -eco
+  }
+  safe_run "ecoPlace"  { ecoPlace }
+  safe_run "ecoRoute" { ecoRoute }
+  safe_run "ecoOpt" {
+      setOptMode -fixDesign true
+      optDesign -preCTS
+  }
+  safe_run "Update Timing" {
+      update_timing -full
+  }
+  print_info "ECO complete"
 }
 
 # 用法：do_live_eco ./inputs/eco_netlist.v
@@ -376,28 +376,28 @@ update_timing -full
 
 # ---------- 5. 报告 ----------
 proc generate_timing_reports { } {
-    set corner_name [get_app_options time.current_view]
-    redirect reports/setup_${corner_name}.rpt { 
-        report_timing -delay max -path full -max_paths 1000 -sort_by group 
-    }
-    redirect reports/hold_${corner_name}.rpt {
-        report_timing -delay min -path full -max_paths 1000 -sort_by group
-    }
-    redirect reports/min_pulse_${corner_name}.rpt {
-        report_analysis_coverage -check_type min_pulse_width
-    }
-    redirect reports/noise_${corner_name}.rpt {
-        report_noise -above -below -hier
-    }
+  set corner_name [get_app_options time.current_view]
+  redirect reports/setup_${corner_name}.rpt { 
+      report_timing -delay max -path full -max_paths 1000 -sort_by group 
+  }
+  redirect reports/hold_${corner_name}.rpt {
+      report_timing -delay min -path full -max_paths 1000 -sort_by group
+  }
+  redirect reports/min_pulse_${corner_name}.rpt {
+      report_analysis_coverage -check_type min_pulse_width
+  }
+  redirect reports/noise_${corner_name}.rpt {
+      report_noise -above -below -hier
+  }
 }
 
 proc run_all_corners { } {
-    set corners {func_wc func_bc scan_wc scan_bc}
-    foreach corner $corners {
-        set_analysis_view -setup ${corner} -hold ${corner}
-        update_timing -full
-        generate_timing_reports
-    }
+  set corners {func_wc func_bc scan_wc scan_bc}
+  foreach corner $corners {
+      set_analysis_view -setup ${corner} -hold ${corner}
+      update_timing -full
+      generate_timing_reports
+  }
 }
 
 run_all_corners
@@ -408,41 +408,41 @@ run_all_corners
 ```tcl
 # 找最差的 10 条路径
 proc show_worst_path {n} {
-    report_timing -delay max -max_paths $n -sort_by slack
+  report_timing -delay max -max_paths $n -sort_by slack
 }
 
 # 调试 path
 proc debug_path {endpoint} {
-    set pin [get_pins $endpoint]
-    if {![sizeof_collection $pin]} {
-        print_warn "No path endpoint $endpoint"
-        return
-    }
-    report_timing -from [all_fanin -flat -startpoints_only -to $pin] -to $pin -path full
+  set pin [get_pins $endpoint]
+  if {![sizeof_collection $pin]} {
+      print_warn "No path endpoint $endpoint"
+      return
+  }
+  report_timing -from [all_fanin -flat -startpoints_only -to $pin] -to $pin -path full
 }
 
 # 检查未约束路径
 proc check_unconstrained {} {
-    set all_eps [all_registers -as_endpoint]
-    set unconstrained_endpoints {}
-    foreach_in_collection pin $all_eps {
-        if {[get_attribute $pin status] eq "unconstrained"} {
-            lappend unconstrained_endpoints [get_object_name $pin]
-        }
-    }
-    return $unconstrained_endpoints
+  set all_eps [all_registers -as_endpoint]
+  set unconstrained_endpoints {}
+  foreach_in_collection pin $all_eps {
+      if {[get_attribute $pin status] eq "unconstrained"} {
+          lappend unconstrained_endpoints [get_object_name $pin]
+      }
+  }
+  return $unconstrained_endpoints
 }
 
 # 看跨时钟域路径
 proc show_cdc_paths {} {
-    foreach_in_collection clkA [get_clocks *] {
-        foreach_in_collection clkB [get_clocks *] {
-            if {$clkA != $clkB} {
-                set paths [filter_collection [all_timing_paths -from $clkA -to $clkB] {established_slnk >= -10}]
-                print_info "CDC $(get_object_name $clkA) -> $(get_object_name $clkB): [sizeof_collection $paths] tight paths"
-            }
-        }
-    }
+  foreach_in_collection clkA [get_clocks *] {
+      foreach_in_collection clkB [get_clocks *] {
+          if {$clkA != $clkB} {
+              set paths [filter_collection [all_timing_paths -from $clkA -to $clkB] {established_slnk >= -10}]
+              print_info "CDC $(get_object_name $clkA) -> $(get_object_name $clkB): [sizeof_collection $paths] tight paths"
+          }
+      }
+  }
 }
 ```
 
@@ -455,24 +455,24 @@ proc show_cdc_paths {} {
 ```tcl
 # Tcl → Perl：调用 perl 解析 complex text
 proc parse_verilog_with_perl {file} {
-    set result [exec perl -e "
-        use strict;
-        use File::Find;
-        my \$module;
-        open my \$f, '<', '$file' or die;
-        while (<\$f>) {
-            if (/module\s+(\w+)/) { \$module = \$1; }
-        }
-        close \$f;
-        print \$module;
-    "]
-    return $result
+  set result [exec perl -e "
+      use strict;
+      use File::Find;
+      my \$module;
+      open my \$f, '<', '$file' or die;
+      while (<\$f>) {
+          if (/module\s+(\w+)/) { \$module = \$1; }
+      }
+      close \$f;
+      print \$module;
+  "]
+  return $result
 }
 
 # Perl → Tcl：传参给 perl
 proc grep_in_files {pattern path} {
-    set result [exec grep -rl "$pattern" $path]
-    return [split $result "\n"]
+  set result [exec grep -rl "$pattern" $path]
+  return [split $result "\n"]
 }
 ```
 
@@ -485,22 +485,22 @@ import sys
 import re
 
 def parse_spef(filename):
-    """Simple SPEF parser: count nets + RC"""
-    with open(filename) as f:
-        content = f.read()
-    nets = re.findall(r'\*(\d+\s+\S+)', content)
-    resistors = re.findall(r'\*R\d+', content)
-    caps = re.findall(r'\*C\d+', content)
-    print(f"Nets: {len(nets)}, Resistors: {len(resistors)}, Caps: {len(caps)}")
+  """Simple SPEF parser: count nets + RC"""
+  with open(filename) as f:
+      content = f.read()
+  nets = re.findall(r'\*(\d+\s+\S+)', content)
+  resistors = re.findall(r'\*R\d+', content)
+  caps = re.findall(r'\*C\d+', content)
+  print(f"Nets: {len(nets)}, Resistors: {len(resistors)}, Caps: {len(caps)}")
 
 if __name__ == "__main__":
-    parse_spef(sys.argv[1])
+  parse_spef(sys.argv[1])
 ```
 
 ```tcl
 # Tcl 调 python
 proc analyze_spef {spef_file} {
-    exec python3 scripts/parse_spef.py $spef_file
+  exec python3 scripts/parse_spef.py $spef_file
 }
 
 # 用法
@@ -513,20 +513,20 @@ analyze_spef ./spef/chip.spef
 # 解析 JSON
 package require json
 proc parse_project_config {json_file} {
-    set fp [open $json_file r]
-    set json [read $fp]
-    close $fp
-    set config [json::json2dict $json]
-    return $config
+  set fp [open $json_file r]
+  set json [read $fp]
+  close $fp
+  set config [json::json2dict $json]
+  return $config
 }
 
 # 写 JSON
 proc save_project_status {status_dict {file "status.json"}} {
-    package require json
-    set json_str [json::dict2json $status_dict]
-    set fp [open $file w]
-    puts $fp $json_str
-    close $fp
+  package require json
+  set json_str [json::dict2json $status_dict]
+  set fp [open $file w]
+  puts $fp $json_str
+  close $fp
 }
 ```
 
@@ -535,24 +535,24 @@ proc save_project_status {status_dict {file "status.json"}} {
 ```tcl
 # 当 proc 复杂 / EDA tool 无法直接处理，用文件中间传递
 proc dump_to_csv {data_out file csv_data} {
-    set fp [open $file w]
-    foreach row $csv_data {
-        puts $fp $row
-    }
-    close $fp
+  set fp [open $file w]
+  foreach row $csv_data {
+      puts $fp $row
+  }
+  close $fp
 }
 
 # 真实场景：处理 STA 结果
 proc export_timing_csv {file} {
-    set fp [open $file w]
-    puts $fp "endpoint,slack,delay,corner"
-    foreach_in_collection path [get_timing_paths] {
-        set ep [get_object_name [get_attribute $path endpoint]]
-        set sl [get_attribute $path slack]
-        set de [get_attribute $path delay]
-        puts $fp "$ep,$sl,$de,func_wc"
-    }
-    close $fp
+  set fp [open $file w]
+  puts $fp "endpoint,slack,delay,corner"
+  foreach_in_collection path [get_timing_paths] {
+      set ep [get_object_name [get_attribute $path endpoint]]
+      set sl [get_attribute $path slack]
+      set de [get_attribute $path delay]
+      puts $fp "$ep,$sl,$de,func_wc"
+  }
+  close $fp
 }
 ```
 
@@ -568,19 +568,19 @@ set LOG_LEVEL {INFO}
 set LOG_FILE_PATH "./logs/run.log"
 
 proc log_write {level msg} {
-    global LOG_LEVEL LOG_FILE_PATH
-    set levels {DEBUG INFO WARN ERROR}
-    set num_level [lsearch $levels $level]
-    set num_threshold [lsearch $levels $LOG_LEVEL]
-    if {$num_level < $num_threshold} return
+  global LOG_LEVEL LOG_FILE_PATH
+  set levels {DEBUG INFO WARN ERROR}
+  set num_level [lsearch $levels $level]
+  set num_threshold [lsearch $levels $LOG_LEVEL]
+  if {$num_level < $num_threshold} return
 
-    set ts [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
-    set line "[$ts] [$level] $msg"
+  set ts [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
+  set line "[$ts] [$level] $msg"
 
-    puts stdout $line
-    set fp [open $LOG_FILE_PATH a]
-    puts $fp $line
-    close $fp
+  puts stdout $line
+  set fp [open $LOG_FILE_PATH a]
+  puts $fp $line
+  close $fp
 }
 
 proc log_debug {msg} { log_write DEBUG $msg }
@@ -593,25 +593,25 @@ proc log_error {msg} { log_write ERROR $msg }
 
 ```tcl
 proc run_pre_check { } {
-    # 检查必备文件
-    set required_files {./netlist.v ./sdc/func.sdc ./lib/stdcell.lib}
-    foreach f $required_files {
-        if {![file exists $f]} {
-            log_error "Required file missing: $f"
-            return -1
-        }
-    }
-    log_info "Pre-check passed"
-    return 0
+  # 检查必备文件
+  set required_files {./netlist.v ./sdc/func.sdc ./lib/stdcell.lib}
+  foreach f $required_files {
+      if {![file exists $f]} {
+          log_error "Required file missing: $f"
+          return -1
+      }
+  }
+  log_info "Pre-check passed"
+  return 0
 }
 
 proc main { } {
-    if {[run_pre_check] != 0} {
-        log_error "Pre-check failed, abort"
-        exit 1
-    }
-    log_info "Starting main flow"
-    safe_run "PNR Step 1" { step_one }
+  if {[run_pre_check] != 0} {
+      log_error "Pre-check failed, abort"
+      exit 1
+  }
+  log_info "Starting main flow"
+  safe_run "PNR Step 1" { step_one }
 }
 ```
 
@@ -619,18 +619,18 @@ proc main { } {
 
 ```tcl
 proc with_retry {cmd_name proc_call max_retry} {
-    for {set i 0} {$i < $max_retry} {incr i} {
-        log_info "Retry $i: $cmd_name"
-        if {[catch {uplevel 1 $proc_call} result]} {
-            log_warn "$cmd_name failed: $result"
-            after 5000
-        } else {
-            log_info "$cmd_name success"
-            return $result
-        }
-    }
-    log_error "$cmd_name failed after $max_retry retries"
-    return -1
+  for {set i 0} {$i < $max_retry} {incr i} {
+      log_info "Retry $i: $cmd_name"
+      if {[catch {uplevel 1 $proc_call} result]} {
+          log_warn "$cmd_name failed: $result"
+          after 5000
+      } else {
+          log_info "$cmd_name success"
+          return $result
+      }
+  }
+  log_error "$cmd_name failed after $max_retry retries"
+  return -1
 }
 
 # 用法：license 失效时重试
@@ -721,7 +721,7 @@ Tcl 性能 tip：
 **答**：
 ```tcl
 namespace eval company::pnr_flow {
-    proc do_pnr {} { }
+  proc do_pnr {} { }
 }
 company::pnr_flow::do_pnr
 ```
@@ -754,8 +754,8 @@ source scripts/placement.tcl
 **答**：用全局变量 / namespace 变量：
 ```tcl
 namespace eval company::config {
-    variable TOP_DESIGN "my_chip"
-    variable CORNERS {{wc_setup ...} {...}}
+  variable TOP_DESIGN "my_chip"
+  variable CORNERS {{wc_setup ...} {...}}
 }
 ```
 
@@ -764,8 +764,8 @@ namespace eval company::config {
 **答**：用 args / 默认值：
 ```tcl
 proc do_step {step_name {args} {}} {
-    default_opts "-max_paths 1000"
-    ...
+  default_opts "-max_paths 1000"
+  ...
 }
 ```
 
@@ -779,7 +779,7 @@ proc do_step {step_name {args} {}} {
 
 ---
 
-## 🎯 后端工程师 Tcl 工具箱（必备清单）
+## 后端工程师 Tcl 工具箱（必备清单）
 
 ```
 utils.tcl 必带 8 个 proc：
@@ -802,7 +802,7 @@ utils.tcl 必带 8 个 proc：
 
 ---
 
-## ⚠️ 实战要避的 5 个坑
+## 实战要避的 5 个坑
 
 1. **不要把所有逻辑都放一个 proc** —— 拆小 + source 装载
 2. **不要忽略 catch 的 result 变量** —— 它有错误码和 message

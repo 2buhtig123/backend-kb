@@ -1,6 +1,6 @@
 ---
 title: "八股题库 · 06 可测试性设计 DFT（Design for Test）"
-description: "┌─── FF1 ── FF2 ── FF3 ── ... ── FFN ───┐"
+description: "DFT 面试专题：Scan 原理、ATPG 算法、MBIST、OCC 与覆盖率指标。"
 module: interview
 order: 5
 ---
@@ -69,11 +69,11 @@ order: 5
 **原理**：
 
 ```
-   ┌─── FF1 ── FF2 ── FF3 ── ... ── FFN ───┐
-   │   SO→ SI  SO→ SI  SO→ SI       SO→ SI  │
-   └──────── scan chain ────────────────┘
-              ↑                       ↓
-            SI (input)              SO (output)
+ ┌─── FF1 ── FF2 ── FF3 ── ... ── FFN ───┐
+ │   SO→ SI  SO→ SI  SO→ SI       SO→ SI  │
+ └──────── scan chain ────────────────┘
+            ↑                       ↓
+          SI (input)              SO (output)
 ```
 
 **测试流程**：
@@ -180,9 +180,9 @@ order: 5
 **为什么 Memory 必须用 MBIST**：
 
 1. **Memory 故障模型不同于逻辑**：
-   - 桥接故障（bridging fault）
-   - 耦合故障（coupling fault）
-   - 静态/动态故障
+ - 桥接故障（bridging fault）
+ - 耦合故障（coupling fault）
+ - 静态/动态故障
 
 2. **Memory 测试需要复杂算法**（March C-、March SS 等）——外部 ATE 不易生成
 
@@ -190,13 +190,13 @@ order: 5
 
 **MBIST 架构**：
 ```
-   ┌── Memory 1 ──┐
-   │              │
+ ┌── Memory 1 ──┐
+ │              │
 MBIST Controller ┼── Memory 2 ──┐
-   │              │              │
-   └── Memory N ──┘              │
-                                 ↓
-                            BIST output
+ │              │              │
+ └── Memory N ──┘              │
+                               ↓
+                          BIST output
 ```
 
 **关键模块**：
@@ -271,10 +271,10 @@ MBIST Controller ┼── Memory 2 ──┐
 2. **DFT 编译**：插入 scan FF、生成 chain
 3. **物理感知 DFT**：DFT Compiler 看物理位置优化 chain 顺序
 4. **后端修复**：
-   - 长 wire 加 buffer（避免 signal integrity）
-   - hold fix
-   - clock skew 平衡
-   - power-aware placement（避免 IR drop 违例）
+ - 长 wire 加 buffer（避免 signal integrity）
+ - hold fix
+ - clock skew 平衡
+ - power-aware placement（避免 IR drop 违例）
 
 **加分点**：
 - 提到 "shift mode 的 hold 检查特别严——很多 hold fix 在这个阶段做"
@@ -296,10 +296,10 @@ MBIST Controller ┼── Memory 2 ──┐
 
 **OCC 架构**：
 ```
-   PI  →  OCC Logic  →  Functional Clock
-                ↑
-            OCC enable
-            OCC select（功能 / 测试）
+ PI  →  OCC Logic  →  Functional Clock
+              ↑
+          OCC enable
+          OCC select（功能 / 测试）
 ```
 
 **关键信号**：
@@ -327,8 +327,8 @@ MBIST Controller ┼── Memory 2 ──┐
 **基本原理**：
 
 ```
-   ATE → → → Decompressor → → N 个 internal chains
-   ATE ← ← ← Compressor ← ← M 个 internal chains
+ ATE → → → Decompressor → → N 个 internal chains
+ ATE ← ← ← Compressor ← ← M 个 internal chains
 ```
 
 - Decompressor 把 ATE 串行输入扩展成多 chain 并行
@@ -381,10 +381,10 @@ MBIST Controller ┼── Memory 2 ──┐
 
 **为什么不能 100%**？
 - **不可测故障**（untestable faults）：
-  - Redundant logic（冗余逻辑）
-  - False path
-  - 异步逻辑
-  - 不被 scan 覆盖的 FF
+- Redundant logic（冗余逻辑）
+- False path
+- 异步逻辑
+- 不被 scan 覆盖的 FF
 
 **提高方法**：
 
@@ -412,27 +412,27 @@ MBIST Controller ┼── Memory 2 ──┐
 **参考答案框架**：
 
 1. **分析覆盖报告**：
-   - `report_test_coverage` 列出未覆盖的 fault
-   - 分类：哪些是 untestable、unreachable
+ - `report_test_coverage` 列出未覆盖的 fault
+ - 分类：哪些是 untestable、unreachable
 
 2. **针对 untestable**：
-   - 看是不是 redundant logic（RTL 优化）
-   - 看是不是 clock gating 阻断（加测试旁路）
-   - 看是不是 memory 接口没接上（接 MBIST）
+ - 看是不是 redundant logic（RTL 优化）
+ - 看是不是 clock gating 阻断（加测试旁路）
+ - 看是不是 memory 接口没接上（接 MBIST）
 
 3. **针对 unreachable**：
-   - 看路径约束是否过严（放宽 false path）
-   - 看 FF 是否被 bypass 了（加 scan FF）
+ - 看路径约束是否过严（放宽 false path）
+ - 看 FF 是否被 bypass 了（加 scan FF）
 
 4. **重新跑 ATPG**：
-   - 使用 compression
-   - 优化 pattern 数
-   - 验证 coverage
+ - 使用 compression
+ - 优化 pattern 数
+ - 验证 coverage
 
 5. **验证**：
-   - 重跑 full ATPG
-   - 确认 pattern count 没爆炸
-   - 跑 transition delay + path delay
+ - 重跑 full ATPG
+ - 确认 pattern count 没爆炸
+ - 跑 transition delay + path delay
 
 **加分点**：
 - 提到 "88% → 95% 通常要动 RTL——这就是 DFT-aware RTL 的价值"
@@ -455,11 +455,11 @@ MBIST Controller ┼── Memory 2 ──┐
 
 ## 五、面试避坑
 
-1. ❌ 把 Scan 和 Boundary Scan 混为一谈——**Scan 测内部 FF，Boundary Scan 测 I/O**
-2. ❌ 不知道 MBIST 算法——面试必提 "March C- 是什么"
-3. ❌ 漏提 Coverage 阈值——95% 是工业标准
-4. ❌ 不知道 OCC 是什么——transition delay 必问
-5. ❌ 以为 ATPG 100% 自动化——实际 RTL 不友好时手工量大
+1. 把 Scan 和 Boundary Scan 混为一谈——**Scan 测内部 FF，Boundary Scan 测 I/O**
+2. 不知道 MBIST 算法——面试必提 "March C- 是什么"
+3. 漏提 Coverage 阈值——95% 是工业标准
+4. 不知道 OCC 是什么——transition delay 必问
+5. 以为 ATPG 100% 自动化——实际 RTL 不友好时手工量大
 
 ---
 

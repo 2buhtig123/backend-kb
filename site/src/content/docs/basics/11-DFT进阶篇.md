@@ -1,6 +1,6 @@
 ---
 title: "DFT 进阶篇：从 ATPG 算法到量产测试工程"
-description: "DFT 工程师实际日常工作："
+description: "Scan、ATPG、MBIST 的工程实践：覆盖率目标、pattern 生成流程与量产测试常见问题。"
 module: basics
 order: 10
 ---
@@ -64,19 +64,19 @@ DFT 工程师实际日常工作：
 ATPG 核心算法 (D-Algorithm / PODEM / FAN)：
 
 1. 激活 (Activation)：
-   - 选择一个未测故障 (line, value)
-   - 通过内部 node 传播相反值
+ - 选择一个未测故障 (line, value)
+ - 通过内部 node 传播相反值
 
 2. 决策 (Decision)：
-   - 计算每个内部 gate input 上的逻辑
-   - 用 D-Frontier 追踪尚未传播的目标
+ - 计算每个内部 gate input 上的逻辑
+ - 用 D-Frontier 追踪尚未传播的目标
 
 3. 回溯 (Backtrack)：
-   - 决策不可满足 → 回溯上一层决策
+ - 决策不可满足 → 回溯上一层决策
 
 4. 传播 (Propagation)：
-   - 把故障状态传到一个可观察点（FF / 输出）
-   - 通过 sensitized path
+ - 把故障状态传到一个可观察点（FF / 输出）
+ - 通过 sensitized path
 ```
 
 ### 2.2 PODEM 算法详解（主流）
@@ -184,13 +184,13 @@ write_test_patterns pat/vectors.wgl -waveform
 Coverage 98% → 99% 的最后 1%：
 1. report_test_coverage -fault_details
 2. 看未检测故障分类：
-   ├── untestable (冗余) → 接受
-   ├── undetectable (ATPG 没找到) → 看 test mode 是否全开
-   └── 无法识别 (主要是 unknown / don't care)
+ ├── untestable (冗余) → 接受
+ ├── undetectable (ATPG 没找到) → 看 test mode 是否全开
+ └── 无法识别 (主要是 unknown / don't care)
 3. 工具优化：
-   ├── 改 test mode 配置
-   ├── 加 transition 测试时钟
-   └── 用 cell-aware test (Tessent 特有)
+ ├── 改 test mode 配置
+ ├── 加 transition 测试时钟
+ └── 用 cell-aware test (Tessent 特有)
 ```
 
 ---
@@ -292,9 +292,9 @@ set_dft_specification -test_clock_per_port 1
 # 加 compress 配置
 add_scan_groups grp_main
 add_scan_compress_configuration grp_main \
-    -codec_mode external_compressor \
-    -compression_ratio 30 \
-    -xstate_mask_value 1
+  -codec_mode external_compressor \
+  -compression_ratio 30 \
+  -xstate_mask_value 1
 
 # 工具自动插 chain
 insert_test_logic
@@ -470,7 +470,7 @@ Power (avg): 80mW
 
 ---
 
-## 🎯 你读完应该会什么
+## 你读完应该会什么
 
 | 能力 | 验证 |
 |---|---|
@@ -481,7 +481,7 @@ Power (avg): 80mW
 
 ---
 
-## ⚠️ 实战要避的 5 个坑
+## 实战要避的 5 个坑
 
 1. **不要把 ATPG coverage = sign-off** —— 还要 timing / power / power-aware test 一起
 2. **不要忽略 test mode timing** —— capture 期间可能 timing 违例

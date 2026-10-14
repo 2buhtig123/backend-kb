@@ -1,11 +1,11 @@
 ---
-title: "CMOS 与数字电路基础 — 后端工程师的\"数字电路\"卷土重来"
-description: "NMOS (n-type)            PMOS (p-type)"
+title: "CMOS 与数字电路基础"
+description: "MOS 管原理、反相器、组合与时序逻辑、功耗来源——后端视角的数字电路基础。"
 module: basics
 order: 2
 ---
 
-# CMOS 与数字电路基础 — 后端工程师的"数字电路"卷土重来
+# CMOS 与数字电路基础
 
 > **为什么后端工程师还要学 CMOS？**
 > - 物理实现后，你看到的不是 RTL，而是晶体管、cell、net
@@ -21,10 +21,10 @@ order: 2
 
 ```
 NMOS (n-type)            PMOS (p-type)
-   D ──[G]── G               D ──[G]── G
-   │                          │
-   S                          S
-   ┴                          ┴
+ D ──[G]── G               D ──[G]── G
+ │                          │
+ S                          S
+ ┴                          ┴
  GND                       VDD
 ```
 
@@ -40,7 +40,7 @@ NMOS (n-type)            PMOS (p-type)
 | **饱和区（saturation）** | Vgs > Vth | Vds ≥ Vgs - Vth | Ids = (k/2)·(Vgs-Vth)² | 模拟放大 |
 | **亚阈值** | Vgs < Vth（接近） | 任意 | Ids = I₀·exp(Vgs/(nVT)) | 漏电流 |
 
-> 📌 **面试考点**：反相器在稳态时，PMOS/NMOS 工作在哪个区？→ 答"一个在截止区，一个在线性区"。
+> **面试考点**：反相器在稳态时，PMOS/NMOS 工作在哪个区？→ 答"一个在截止区，一个在线性区"。
 
 ---
 
@@ -49,18 +49,18 @@ NMOS (n-type)            PMOS (p-type)
 ### 2.1 结构
 
 ```
-     VDD
-      │
-    ┌─┴─┐
-    │ P │
-    │   ├──── Output
-    │ N │
-    │   │
-    └─┬─┘
-      │
-     GND
-     ↑
-     Input
+   VDD
+    │
+  ┌─┴─┐
+  │ P │
+  │   ├──── Output
+  │ N │
+  │   │
+  └─┬─┘
+    │
+   GND
+   ↑
+   Input
 ```
 
 - Input = 0：PMOS 导通，NMOS 截止，Output 拉到 VDD
@@ -100,7 +100,7 @@ N = ln(F) / ln(e)      F = Cload/Cin
 β = e ≈ 2.718
 ```
 
-> 📌 **面试考点**：反相器链的最优级数和放大比？→ 答"N = ln(F)/ln(e)，β = e"。
+> **面试考点**：反相器链的最优级数和放大比？→ 答"N = ln(F)/ln(e)，β = e"。
 
 ---
 
@@ -109,11 +109,11 @@ N = ln(F) / ln(e)      F = Cload/Cin
 ### 3.1 NAND / NOR
 
 - **NAND**：两个 NMOS 串联、PMOS 并联
-  - 输入全 1 → NMOS 全导通 → 拉 GND（快）
-  - 输入任一 0 → 至少一个 PMOS 导通 → 拉 VDD（慢，因为 PMOS 弱）
+- 输入全 1 → NMOS 全导通 → 拉 GND（快）
+- 输入任一 0 → 至少一个 PMOS 导通 → 拉 VDD（慢，因为 PMOS 弱）
 - **NOR**：两个 PMOS 串联、NMOS 并联
-  - 输入全 0 → PMOS 全导通 → 拉 VDD（慢）
-  - 输入任一 1 → 至少一个 NMOS 导通 → 拉 GND（快）
+- 输入全 0 → PMOS 全导通 → 拉 VDD（慢）
+- 输入任一 1 → 至少一个 NMOS 导通 → 拉 GND（快）
 
 **对称性**：
 - NAND 比 NOR 快（电子迁移率高于空穴）
@@ -123,10 +123,10 @@ N = ln(F) / ln(e)      F = Cload/Cin
 
 ```
 AOI21 = AND-OR-Invert
-       = !(A&B | C)
+     = !(A&B | C)
 
 OAI21 = OR-AND-Invert
-       = !(A&B | C&D)
+     = !(A&B | C&D)
 ```
 
 后端工具（如 Synopsys / Cadence）会自动用 AOI/OAI 替换 AND-OR-NOT 组合，**节省面积、降低延迟**。
@@ -188,7 +188,7 @@ P_static = VDD · I_leakage
 ```
 R    R    R    R    ← 每段电阻
 ─/\/─\/─\/──
-   C    C    C       ← 每段电容
+ C    C    C       ← 每段电容
 ```
 
 分布式 RC 模型（π 型）。延迟近似为 0.4·R·C（Lumped 模型）或 0.5·R·C（Elmore 模型）。
@@ -226,10 +226,10 @@ R    R    R    R    ← 每段电阻
 
 ```
 Input ──┬──[TG]──┬── Output
-        │        │
-       [Inv]   [Inv+Inv]
-        ↑              ↑
-       Enable      Enable_b
+      │        │
+     [Inv]   [Inv+Inv]
+      ↑              ↑
+     Enable      Enable_b
 ```
 
 - 电平敏感，使能有效时输入直通
@@ -280,7 +280,7 @@ MTBF = e^(Tr/Tc) / (T0 · f_clk · f_data)
 - 单 bit：用 2 级 DFF 同步器
 - 多 bit：用格雷码 + 同步器，或异步 FIFO
 
-> 📌 **面试考点**："MTBF 怎么算？" → 用上面的公式。
+> **面试考点**："MTBF 怎么算？" → 用上面的公式。
 
 ---
 
@@ -290,9 +290,9 @@ MTBF = e^(Tr/Tc) / (T0 · f_clk · f_data)
 
 ```
 Aggressor (攻击者)         Victim (受害者)
-   ─────────────             ─────────────
-                ↑
-              耦合电容
+ ─────────────             ─────────────
+              ↑
+            耦合电容
 ```
 
 当 Aggressor 翻转时，通过耦合电容 Cc，在 Victim 上感应电压毛刺。
@@ -366,7 +366,7 @@ Aggressor (攻击者)         Victim (受害者)
 
 ---
 
-## 📝 自测题
+## 自测题
 
 1. 画 CMOS 反相器电路图，解释工作原理。
 2. NMOS 工作在线性区和饱和区的条件是什么？

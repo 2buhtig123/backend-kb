@@ -1,11 +1,11 @@
 ---
-title: "静态时序分析（STA）— 数字后端的灵魂"
-description: "数字电路只要满足两个时序约束，就能保证功能正确："
+title: "静态时序分析（STA）：概念、公式与修复策略"
+description: "Setup/Hold 公式推导、时序路径分类、修复策略与面试高频问题。"
 module: basics
 order: 0
 ---
 
-# 静态时序分析（STA）— 数字后端的灵魂
+# 静态时序分析（STA）：概念、公式与修复策略
 
 > **为什么 STA 是核心？** 数字后端工程师的 70% 工作都围绕"时序收敛"——跑通综合、布局布线、时钟树综合后，最终都是为了工具说一句 **"Timing is clean"**。
 > 面试时，几乎所有公司都会问 STA。这是**入门必学**模块。
@@ -37,12 +37,12 @@ STA 把电路抽象成**时序图（Timing Graph）**，用图算法遍历所有
 
 ```
 起点（Launch Clock）         终点（Capture Clock）
-   │
-   ▼
+ │
+ ▼
  [源寄存器]  --->  [组合逻辑]  --->  [目的寄存器]
-   │                                               │
-   │                                               │
-   ▼                                               ▼
+ │                                               │
+ │                                               │
+ ▼                                               ▼
  Launch Edge                                  Capture Edge
 ```
 
@@ -53,7 +53,7 @@ STA 把电路抽象成**时序图（Timing Graph）**，用图算法遍历所有
 | **Reg-to-Out** | 寄存器 CLK | Output Port | Setup + Hold |
 | **In-to-Out** | Input Port | Output Port | Setup only（异步路径） |
 
-> 📌 **面试考点**：问你"一条完整时序路径包含哪些延迟"？要答出：**Clock Latency + Clock Skew + Cell Delay + Net Delay**。漏一个就要扣分。
+> **面试考点**：问你"一条完整时序路径包含哪些延迟"？要答出：**Clock Latency + Clock Skew + Cell Delay + Net Delay**。漏一个就要扣分。
 
 ---
 
@@ -65,10 +65,10 @@ STA 把电路抽象成**时序图（Timing Graph）**，用图算法遍历所有
 
 ```
 Setup Slack = (Capture Clock Arrival Time) 
-            - (Launch Clock Arrival Time) 
-            - (Data Path Delay) 
-            - Setup Time Uncertainty 
-            - Setup Time of Flip-Flop
+          - (Launch Clock Arrival Time) 
+          - (Data Path Delay) 
+          - Setup Time Uncertainty 
+          - Setup Time of Flip-Flop
 ```
 
 或者更直观的：
@@ -78,8 +78,8 @@ Setup Slack = T_cycle - (T_clk2Q + T_logic + T_net + T_setup) - T_uncertainty - 
 ```
 
 **关键点**：
-- ✅ Setup Slack ≥ 0 → 时序满足
-- ❌ Setup Slack < 0 → 时序违例，需要修复
+- Setup Slack ≥ 0 → 时序满足
+- Setup Slack < 0 → 时序违例，需要修复
 
 ### 3.2 修复策略（必背）
 
@@ -93,7 +93,7 @@ Setup Slack = T_cycle - (T_clk2Q + T_logic + T_net + T_setup) - T_uncertainty - 
 | **Useful skew** | 时序裕量在两级寄存器间分布不均 | 改时钟树 |
 | **逻辑优化** | 关键路径上推一把 | 改 RTL |
 
-> 📌 **面试加分项**：能说出 **"Setup 不满足是频率问题，Hold 不满足是制造问题"** 这句话，基本稳。
+> **面试加分项**：能主动区分 **"Setup 违例是频率问题，Hold 违例是制造问题"**，说明对时序的本质理解到位。
 
 ---
 
@@ -105,9 +105,9 @@ Setup Slack = T_cycle - (T_clk2Q + T_logic + T_net + T_setup) - T_uncertainty - 
 
 ```
 Hold Slack = (Data Arrival Time at Capture FF)
-           - (Capture Clock Arrival Time)
-           - Hold Time Uncertainty
-           - Hold Time of Flip-Flop
+         - (Capture Clock Arrival Time)
+         - Hold Time Uncertainty
+         - Hold Time of Flip-Flop
 ```
 
 更直观的：
@@ -117,9 +117,9 @@ Hold Slack = (T_clk2Q + T_logic + T_net) - T_skew - T_hold
 ```
 
 **关键点**：
-- ✅ Hold Slack ≥ 0 → 时序满足
-- ❌ Hold Slack < 0 → 时序违例
-- ⚠️ **Hold 与时钟周期无关**——只和"最小延迟路径"相关
+- Hold Slack ≥ 0 → 时序满足
+- Hold Slack < 0 → 时序违例
+- **Hold 与时钟周期无关**——只和"最小延迟路径"相关
 
 ### 4.2 修复策略
 
@@ -130,7 +130,7 @@ Hold Slack = (T_clk2Q + T_logic + T_net) - T_skew - T_hold
 | **改 Cell 类型**（更大延迟的 Cell） | 单个 Cell 延迟太小 |
 | **缩短时钟路径** | 时钟 Skew 帮助 Hold |
 
-> 📌 **核心考点**：**Hold 违例最常见原因**是时钟树 Skew + 制造 corner 下 Cell 延迟变小（FF corner）。面试官问"Hold 为什么违例"，先答这两个原因。
+> **核心考点**：**Hold 违例最常见原因**是时钟树 Skew + 制造 corner 下 Cell 延迟变小（FF corner）。面试官问"Hold 为什么违例"，先答这两个原因。
 
 ---
 
@@ -167,7 +167,7 @@ CPPR 是工具自动做的（PT / Tempus），但你要知道为什么有这个�
 - **AOCV（Advanced OCV）**：根据路径深度和物理距离分级 derate
 - **POCV（Parametric OCV）**：把 Cell 延迟建模成正态分布，用 σ 描述
 
-> 📌 **进阶考点**：先进工艺（7nm/5nm）必须用 POCV 或 SOCV，老的 derate 不够精确。
+> **进阶考点**：先进工艺（7nm/5nm）必须用 POCV 或 SOCV，老的 derate 不够精确。
 
 ---
 
@@ -199,7 +199,7 @@ set_multicycle_path 2 -setup -from [get_pins U_REG1/CLK] -to [get_pins U_REG2/D]
 set_multicycle_path 1 -hold -from [get_pins U_REG1/CLK] -to [get_pins U_REG2/D]
 ```
 
-> ⚠️ **经典坑**：Setup 用 N 周期，Hold 必须配对用 N-1 周期——很多新人忘记设 hold。
+> **经典坑**：Setup 用 N 周期，Hold 必须配对用 N-1 周期——很多新人忘记设 hold。
 
 ### 6.3 Max/Min Delay
 
@@ -219,7 +219,7 @@ set_multicycle_path 1 -hold -from [get_pins U_REG1/CLK] -to [get_pins U_REG2/D]
 
 每种模式要分别跑 STA——因为时钟、约束、负载都可能不同。
 
-> 📌 **面试考点**："你做的项目跑了几种 mode？" → 答 "function + scan + 2 个 mbist + 2 个 shift mode" 显得专业。
+> **面试考点**："你做的项目跑了几种 mode？" → 答 "function + scan + 2 个 mbist + 2 个 shift mode" 显得专业。
 
 ---
 
@@ -306,7 +306,7 @@ Mode2 (Scan)    × Corner3 (SS125c) +
 
 ---
 
-## 📝 自测题（检验你是否真的懂了）
+## 自测题（检验你是否真的懂了）
 
 1. Setup Slack 和 Hold Slack 的公式分别是什么？各与哪些因素相关？
 2. Setup 违例和 Hold 违例的常见修复策略各列 5 种。

@@ -1,11 +1,11 @@
 ---
-title: "时钟树综合（CTS）— 让百万级寄存器同步呼吸"
-description: "把时钟想象成\"水管\"，PLL 是水泵，每个寄存器是一个水龙头。"
+title: "时钟树综合（CTS）：时钟树结构与实现流程"
+description: "时钟树综合的核心概念：Skew、Insertion Delay、Latency，平衡策略与工具实现方法。"
 module: basics
 order: 1
 ---
 
-# 时钟树综合（CTS）— 让百万级寄存器同步呼吸
+# 时钟树综合（CTS）：时钟树结构与实现流程
 
 > **什么是时钟树？** 一颗芯片可能有几百万个寄存器，它们都需要"在同一时刻"收到时钟上升沿。
 > 但物理上，时钟从 PLL 出发到每个寄存器的距离不同，走线延迟不同，**时钟不可能同时到达所有寄存器**。
@@ -38,7 +38,7 @@ order: 1
 
 ```
 Clock Latency = Clock Source Latency (PLL → SoC Clock Pin) 
-              + Clock Network Latency (Clock Pin → FF CLK Pin)
+            + Clock Network Latency (Clock Pin → FF CLK Pin)
 ```
 
 - **Source Latency**：片外延迟，工具一般假设 0 或用 spec
@@ -61,7 +61,7 @@ Skew = max(Latency to any sink) - min(Latency to any sink)
 - **Setup Slack 不够**？让 Launch 寄存器晚一拍、或者 Capture 寄存器早一拍
 - **Hold Slack 不够**？反过来
 
-> 📌 **面试考点**："Useful Skew 怎么用？" → 答 "在两个寄存器之间，故意让 Capture 早一拍，把 Setup Slack 借给关键路径"。
+> **面试考点**："Useful Skew 怎么用？" → 答 "在两个寄存器之间，故意让 Capture 早一拍，把 Setup Slack 借给关键路径"。
 
 ---
 
@@ -72,9 +72,9 @@ Skew = max(Latency to any sink) - min(Latency to any sink)
 #### (a) H-Tree
 ```
 PLL ──┬── H ──┬── H ──┬── ...
-      │        │        │
-      ▼        ▼        ▼
-   sinks   sinks   sinks
+    │        │        │
+    ▼        ▼        ▼
+ sinks   sinks   sinks
 ```
 - 对称结构，Skew 天然小
 - **缺点**：面积浪费大，sinks 不一定均匀分布
@@ -82,9 +82,9 @@ PLL ──┬── H ──┬── H ──┬── ...
 #### (b) Fishbone
 ```
 PLL ──── 主干 ──── 分支 ──── 分支 ...
-            │       │        │
-            ▼       ▼        ▼
-          sinks   sinks    sinks
+          │       │        │
+          ▼       ▼        ▼
+        sinks   sinks    sinks
 ```
 - 类似鱼骨，分支灵活
 - **缺点**：分支长度不一致，Skew 较大，需要 balance buffer
@@ -92,10 +92,10 @@ PLL ──── 主干 ──── 分支 ──── 分支 ...
 #### (c) Mesh（网格）
 ```
 PLL ──┬───┬───┬─── 
-      │ ╳ │ ╳ │ 
-      ├───┼───┤
-      │ ╳ │ ╳ │
-      └───┴───┘
+    │ ╳ │ ╳ │ 
+    ├───┼───┤
+    │ ╳ │ ╳ │
+    └───┴───┘
 ```
 - **最 robust**——任意节点断开都能恢复时钟
 - **应用场景**：高可靠性芯片（服务器 CPU、汽车）
@@ -153,12 +153,12 @@ set_clock_root CLK_BUF/Z
 
 # 时钟 buffer 列表
 set_clock_tree_options -clock CLK \
-    -buffer {CK_INV8 CK_INV16 CK_BUFX8} \
-    -max_transition 0.1 \
-    -max_capacitance 0.2 \
-    -max_fanout 25 \
-    -target_skew 0.05 \
-    -target_max_drant-dcc 0.3
+  -buffer {CK_INV8 CK_INV16 CK_BUFX8} \
+  -max_transition 0.1 \
+  -max_capacitance 0.2 \
+  -max_fanout 25 \
+  -target_skew 0.05 \
+  -target_max_drant-dcc 0.3
 
 # 时钟门控例外
 set_clock_gating_check -setup 0.1 -hold 0.05
@@ -185,9 +185,9 @@ set_clock_gating_check -setup 0.1 -hold 0.05
 
 ```
 PLL → BufA → BufB → Reg1 (Launch)
-                └─→ Reg2 (Capture)
-              ↑
-            共同路径
+              └─→ Reg2 (Capture)
+            ↑
+          共同路径
 ```
 
 ### 6.2 CPPR / CRPR
@@ -197,7 +197,7 @@ PLL → BufA → BufB → Reg1 (Launch)
 - 实际对 Skew 没贡献
 - 工具自动识别并**算信用点**（CPPR）扣除
 
-> 📌 **面试考点**："CTS 怎么影响 OCV？" → 答 "CPPR 把共同时钟路径的悲观性扣除，让 OCV 分析更准确"。
+> **面试考点**："CTS 怎么影响 OCV？" → 答 "CPPR 把共同时钟路径的悲观性扣除，让 OCV 分析更准确"。
 
 ---
 
@@ -209,8 +209,8 @@ PLL → BufA → BufB → Reg1 (Launch)
 
 ```verilog
 always @(posedge clk_gated or negedge rst_n) begin
-    if (!rst_n) counter <= 0;
-    else if (enable) counter <= counter + 1;
+  if (!rst_n) counter <= 0;
+  else if (enable) counter <= counter + 1;
 end
 ```
 
@@ -218,8 +218,8 @@ end
 
 ```
 PLL ──→ ICG Cell ──→ Registers
-         ↑     
-       enable
+       ↑     
+     enable
 ```
 
 ICG 单元是专用 cell，**Latch + AND 门**，避免毛刺。
@@ -243,7 +243,7 @@ ICG 单元是专用 cell，**Latch + AND 门**，避免毛刺。
 
 每个域**独立做 CTS**，域间有异步路径（CDC），不走 CTS。
 
-> 📌 **面试考点**：你做的项目有几个 clock domain？答 "12 个，其中 4 个 always-on" 显得真实。
+> **面试考点**：你做的项目有几个 clock domain？答 "12 个，其中 4 个 always-on" 显得真实。
 
 ---
 
@@ -310,7 +310,7 @@ report_clock_timing -type dant-dcc
 
 ---
 
-## 📝 自测题
+## 自测题
 
 1. 什么是 Useful Skew？举例说明它怎么帮助 Setup 收敛。
 2. Skew 和 Latency 的精确定义是什么？它们的区别？

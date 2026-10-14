@@ -1,6 +1,6 @@
 ---
 title: "STA 深入：从入门到能上手工程（进阶版）"
-description: "Liberty（.lib）是综合 + 静态时序分析的核心数据——所有 cell 的功耗、面积、时序都从它读。7nm 以下，还会有 .ldb / .ccslib 等扩展。"
+description: "Liberty 库解析、SDC 约束实践、OCV/AOCV/POCV、SI-aware 分析等 STA 进阶主题。"
 module: basics
 order: 6
 ---
@@ -40,62 +40,62 @@ Liberty（.lib）是**综合 + 静态时序分析的核心数据**——所有 c
 
 ```
 library ("my_lib_a28ss_125c") {
-  library_features (report_delay_calc, report_power_calc);  ← 工具支持的功能
-  delay_model : "table_lookup";                              ← 延迟模型
-  bus_naming_style : "%s[%d]";                              ← 总线命名
-  voltage_map (VDD, 0.9);                                    ← 工作电压
+library_features (report_delay_calc, report_power_calc);  ← 工具支持的功能
+delay_model : "table_lookup";                              ← 延迟模型
+bus_naming_style : "%s[%d]";                              ← 总线命名
+voltage_map (VDD, 0.9);                                    ← 工作电压
 
-  operating_conditions ("nom_25c") {                        ← PVT 环境
-    process : 1;
-    voltage : 0.9;
-    temperature : 25;
+operating_conditions ("nom_25c") {                        ← PVT 环境
+  process : 1;
+  voltage : 0.9;
+  temperature : 25;
+}
+
+lu_table_template (delay_template_3x3) {                   ← 查找表模板
+  variable_1 : input_net_transition;                       ← 输入转换时间
+  variable_2 : total_output_net_length;                    ← 输出线长度
+  index_1 ("0.01, 0.1, 0.5");                              ← 转换时间采样
+  index_2 ("0.001, 0.5, 5");                               ← 长度采样
+}
+
+cell (NAND2_X1) {                                           ← 一个标准 cell
+  area : 2.1;                                              ← 面积 (site unit)
+  cell_leakage_power : 0.5;                                ← 静态功耗
+
+  cell_footprint : nand2;                                  ← 物理 footprint
+
+  pin (A) {                                                ← 输入引脚
+    direction : input;
+    capacitance : 0.002;                                   ← 引脚电容
+    rise_capacitance : 0.0018;
+    fall_capacitance : 0.0022;
+    max_transition : 0.5;
+    fanout_load : 1.0;
   }
 
-  lu_table_template (delay_template_3x3) {                   ← 查找表模板
-    variable_1 : input_net_transition;                       ← 输入转换时间
-    variable_2 : total_output_net_length;                    ← 输出线长度
-    index_1 ("0.01, 0.1, 0.5");                              ← 转换时间采样
-    index_2 ("0.001, 0.5, 5");                               ← 长度采样
-  }
-
-  cell (NAND2_X1) {                                           ← 一个标准 cell
-    area : 2.1;                                              ← 面积 (site unit)
-    cell_leakage_power : 0.5;                                ← 静态功耗
-
-    cell_footprint : nand2;                                  ← 物理 footprint
-
-    pin (A) {                                                ← 输入引脚
-      direction : input;
-      capacitance : 0.002;                                   ← 引脚电容
-      rise_capacitance : 0.0018;
-      fall_capacitance : 0.0022;
-      max_transition : 0.5;
-      fanout_load : 1.0;
+  pin (Y) {                                                ← 输出引脚
+    direction : output;
+    function : "(!(A & B))";                               ← 函数
+    max_capacitance : 0.05;                                ← 最大负载
+    max_fanout : 8;
+    max_transition : 0.5;
+    timing() {                                             ← 时序 arcs
+      timing_type : combinational;                         ← 组合 arcs
+      related_pin : "A";
+      timing_sense : negative_unate;                       ← 反相器/与非
+      cell_rise (delay_template_3x3) { ... }               ← 上升延迟 LUT
+      cell_fall (delay_template_3x3) { ... }               ← 下降延迟 LUT
+      rise_transition (delay_template_3x3) { ... }         ← 上升转换时间
+      fall_transition (delay_template_3x3) { ... }         ← 下降转换时间
+      rise_power (power_template_3x3) { ... }              ← 上升功耗
+      fall_power (power_template_3x3) { ... }
     }
-
-    pin (Y) {                                                ← 输出引脚
-      direction : output;
-      function : "(!(A & B))";                               ← 函数
-      max_capacitance : 0.05;                                ← 最大负载
-      max_fanout : 8;
-      max_transition : 0.5;
-      timing() {                                             ← 时序 arcs
-        timing_type : combinational;                         ← 组合 arcs
-        related_pin : "A";
-        timing_sense : negative_unate;                       ← 反相器/与非
-        cell_rise (delay_template_3x3) { ... }               ← 上升延迟 LUT
-        cell_fall (delay_template_3x3) { ... }               ← 下降延迟 LUT
-        rise_transition (delay_template_3x3) { ... }         ← 上升转换时间
-        fall_transition (delay_template_3x3) { ... }         ← 下降转换时间
-        rise_power (power_template_3x3) { ... }              ← 上升功耗
-        fall_power (power_template_3x3) { ... }
-      }
-      timing() {  ← 第二个 arc
-        related_pin : "B";
-        ...
-      }
+    timing() {  ← 第二个 arc
+      related_pin : "B";
+      ...
     }
   }
+}
 }
 ```
 
@@ -103,9 +103,9 @@ library ("my_lib_a28ss_125c") {
 
 | 模型 | 代表 LUT 数 | 精度 | 7nm 以下 |
 |---|---|---|---|
-| **NLDM (Non-Linear Delay Model)** | 1-2 个 2D 表 | 低 | ❌ 不准 |
-| **CCS (Composite Current Source)** | 多张电流波形 | 高 | ✅ 必用 |
-| **ECSM (Effective Current Source Model)** | Synopsys 版 CCS | 高 | ✅ 必用 |
+| **NLDM (Non-Linear Delay Model)** | 1-2 个 2D 表 | 低 | 不准 |
+| **CCS (Composite Current Source)** | 多张电流波形 | 高 | 必用 |
+| **ECSM (Effective Current Source Model)** | Synopsys 版 CCS | 高 | 必用 |
 
 **NLDM 为什么不够用**：NLDM 把门延迟简化为"输入转换时间 + 输出负载"两个变量，**忽略了输入波形形状和输出负载沿 RC 分布的细节**。7nm 以下，wire RC 主导，NLDM 会比真实延迟**误差 ±30ps**——超过一个时钟周期。
 
@@ -164,15 +164,15 @@ create_clock -name uart_clk     -period 10.0     [get_ports UART_REF_CLK]   ;# �
 
 # ============ 2. 衍生时钟 (派生时钟) ============
 create_generated_clock -name core_clk  \
-    -source [get_ports sys_clk]                \
-    -multiply_by 4 -divide_by 1                \
-    -duty_cycle 0.5                            \
-    [get_pins PLL/CLK_O]
+  -source [get_ports sys_clk]                \
+  -multiply_by 4 -divide_by 1                \
+  -duty_cycle 0.5                            \
+  [get_pins PLL/CLK_O]
 
 create_generated_clock -name div2_clk  \
-    -source [get_pins PLL/CLK_O]              \
-    -divide_by 2                               \
-    [get_pins DIVIDER/Q_REG]
+  -source [get_pins PLL/CLK_O]              \
+  -divide_by 2                               \
+  [get_pins DIVIDER/Q_REG]
 
 # ============ 3. 时钟属性 (uncertainty) ============
 set_clock_uncertainty  0.05      [get_clocks sys_clk]                        ;# jitter + margin
@@ -234,13 +234,13 @@ set_max_delay  5.0 -through [get_pins BIG_MUX/A*]                            ;# 
 # ============ 13. 系统模式 (Mode) 准备 ============
 # Mode 1: 功能模式
 if { [file exists "sdc/func.sdc"] } {
-    source  -echo sdc/func.sdc
+  source  -echo sdc/func.sdc
 }
 
 # Mode 2: scan 模式
 if { [file exists "sdc/scan.sdc"] } {
-    remove_sdc
-    source  -echo sdc/scan.sdc
+  remove_sdc
+  source  -echo sdc/scan.sdc
 }
 ```
 
@@ -261,21 +261,21 @@ if { [file exists "sdc/scan.sdc"] } {
 ```tcl
 # SDC 自检：确保关键端口都加了约束
 proc check_sdc_completeness {} {
-    set issues {}
-    # 1. 所有 cell 是否有时钟？
-    foreach_in_collection cell [all_register_clock_pins -no_clock] {
-        lappend issues "warning: 时序器件 [get_object_name $cell] 没有时钟"
-    }
-    # 2. 所有输入端口是否有 set_input_delay？
-    foreach_in_collection p [get_ports -filter "direction==in"] {
-        set_input_delay -quiet -clock [get_clocks] $p >/dev/null
-        if { [get_attribute [get_attribute $p status] input_delay] == "unset" } {
-            lappend issues "warning: 输入端口 $p 没有 set_input_delay"
-        }
-    }
-    # 3. 每对时钟是否做了 set_clock_uncertainty？
-    # 4. case analysis 与 SDC 模式是否冲突？
-    return $issues
+  set issues {}
+  # 1. 所有 cell 是否有时钟？
+  foreach_in_collection cell [all_register_clock_pins -no_clock] {
+      lappend issues "warning: 时序器件 [get_object_name $cell] 没有时钟"
+  }
+  # 2. 所有输入端口是否有 set_input_delay？
+  foreach_in_collection p [get_ports -filter "direction==in"] {
+      set_input_delay -quiet -clock [get_clocks] $p >/dev/null
+      if { [get_attribute [get_attribute $p status] input_delay] == "unset" } {
+          lappend issues "warning: 输入端口 $p 没有 set_input_delay"
+      }
+  }
+  # 3. 每对时钟是否做了 set_clock_uncertainty？
+  # 4. case analysis 与 SDC 模式是否冲突？
+  return $issues
 }
 ```
 
@@ -405,55 +405,55 @@ set init_design_scaffold ./build/${top_design}.scaffold.v
 set top_sdc_func ./sdc/func.sdc
 set top_sdc_scan ./sdc/scan.sdc
 set top_libs     "/remote/data/libs/liberty/my_tech/stdcell/my_tech_wc.lib \
-                  /remote/data/libs/liberty/my_tech/sram/sram_wc.lib \
-                  /remote/data/libs/liberty/my_tech/io/io_wc.lib"
+                /remote/data/libs/liberty/my_tech/sram/sram_wc.lib \
+                /remote/data/libs/liberty/my_tech/io/io_wc.lib"
 set parasitics   ./spef/chip_route.spef
 
 # ---------- 2. 加载多个 corner ----------
 # Corner 列表 (Process × Voltage × Temperature × RC)
 set sdc_corners {
-    {func ss_0p88_125c_maxspef_corner1} {func ss_0p88_125c_minspef_corner2}
-    {func ss_0p88_-40c_maxspef_corner1} {func ss_0p88_-40c_minspef_corner2}
-    {func ff_0p95_125c_maxspef_corner1} {func ff_0p95_125c_minspef_corner2}
-    {func ff_0p95_-40c_maxspef_corner1} {func ff_0p95_-40c_minspef_corner2}
-    {scan ss_0p88_125c_maxspef_corner1} {scan ss_0p88_125c_minspef_corner2}
+  {func ss_0p88_125c_maxspef_corner1} {func ss_0p88_125c_minspef_corner2}
+  {func ss_0p88_-40c_maxspef_corner1} {func ss_0p88_-40c_minspef_corner2}
+  {func ff_0p95_125c_maxspef_corner1} {func ff_0p95_125c_minspef_corner2}
+  {func ff_0p95_-40c_maxspef_corner1} {func ff_0p95_-40c_minspef_corner2}
+  {scan ss_0p88_125c_maxspef_corner1} {scan ss_0p88_125c_minspef_corner2}
 }
 
 # 一次循环跑所有 corner
 foreach {mode corner} $sdc_corners {
-    set_analysis_view -setup $corner  -hold $corner_opposite
+  set_analysis_view -setup $corner  -hold $corner_opposite
 
-    # 加载设计
-    set init_top_cell $top_design
-    set init_verilog  $init_design_scaffold
-    set init_lib_path $top_libs
+  # 加载设计
+  set init_top_cell $top_design
+  set init_verilog  $init_design_scaffold
+  set init_lib_path $top_libs
 
-    init_design
+  init_design
 
-    # 加载 SDC: 选 mode
-    if {$mode eq "func"} { source $top_sdc_func } else { source $top_sdc_scan }
+  # 加载 SDC: 选 mode
+  if {$mode eq "func"} { source $top_sdc_func } else { source $top_sdc_scan }
 
-    # 加载寄生
-    read_parasitics $parasitics
+  # 加载寄生
+  read_parasitics $parasitics
 
-    # 加载延时（实际项目会读 SDF）
-    read_sdf ./sdf/chip_route.sdf
+  # 加载延时（实际项目会读 SDF）
+  read_sdf ./sdf/chip_route.sdf
 
-    # 启动 update_timing
-    update_timing -full
+  # 启动 update_timing
+  update_timing -full
 
-    # 报告
-    if {[sizeof_collection [report_timing -delay max -path full -max_paths 1000 -sort_by group]]} {
-        exec mkdir -p reports/$corner
-        redirect reports/$corner/setup_1000_path.rpt { report_timing -delay max -path full -max_paths 1000 -sort_by group }
-        redirect reports/$corner/hold_1000_path.rpt  { report_timing -delay min -path full -max_paths 1000 -sort_by group }
-    }
+  # 报告
+  if {[sizeof_collection [report_timing -delay max -path full -max_paths 1000 -sort_by group]]} {
+      exec mkdir -p reports/$corner
+      redirect reports/$corner/setup_1000_path.rpt { report_timing -delay max -path full -max_paths 1000 -sort_by group }
+      redirect reports/$corner/hold_1000_path.rpt  { report_timing -delay min -path full -max_paths 1000 -sort_by group }
+  }
 
-    # check output/voltage
-    redirect reports/$corner/max_transition.rpt { report_analysis_coverage -check_type max_transition }
-    redirect reports/$corner/max_cap.rpt        { report_analysis_coverage -check_type max_capacitance }
-    redirect reports/$corner/max_fanout.rpt     { report_analysis_coverage -check_type fanout }
-    redirect reports/$corner/min_pulse.rpt      { report_analysis_coverage -check_type min_pulse_width }
+  # check output/voltage
+  redirect reports/$corner/max_transition.rpt { report_analysis_coverage -check_type max_transition }
+  redirect reports/$corner/max_cap.rpt        { report_analysis_coverage -check_type max_capacitance }
+  redirect reports/$corner/max_fanout.rpt     { report_analysis_coverage -check_type fanout }
+  redirect reports/$corner/min_pulse.rpt      { report_analysis_coverage -check_type min_pulse_width }
 }
 ```
 
@@ -562,7 +562,7 @@ Sign-off 选最关键的几个：
 
 ---
 
-## 🎯 你能在 1 个项目之后用什么？
+## 你能在 1 个项目之后用什么？
 
 按"做 1 个项目 → 会的话"排序：
 
@@ -578,7 +578,7 @@ Sign-off 选最关键的几个：
 
 ---
 
-## ⚠️ 实战要避的 5 个坑
+## 实战要避的 5 个坑
 
 1. **不要相信 PT 的 "no violations" 就 sign-off**——还要跑 leakage + dynamic corner + aging
 2. **不要把 STA 与功能仿真混淆**——STA 不验证逻辑，只验证 timing

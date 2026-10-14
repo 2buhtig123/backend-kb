@@ -1,6 +1,6 @@
 ---
 title: "八股题库 · 04 功耗与 IR Drop"
-description: "Pdynamic = α × C × V² × f"
+description: "功耗与 IR Drop 专题：动态/静态功耗构成、功耗估算方法、IR Drop 分析与修复。"
 module: interview
 order: 3
 ---
@@ -25,13 +25,13 @@ order: 3
 **动态功耗公式**：
 ```
 P_dynamic = α × C × V² × f
-  α = switching activity（翻转率，0~1）
-  C = 负载电容
-  V = 电压
-  f = 频率
+α = switching activity（翻转率，0~1）
+C = 负载电容
+V = 电压
+f = 频率
 ```
 
-> 📌 **关键洞察**：电压是功耗最大变量，**降低 10% 电压 → 降低 19% 功耗**。
+> **关键洞察**：电压是功耗最大变量，**降低 10% 电压 → 降低 19% 功耗**。
 
 ### 1.2 IR Drop
 
@@ -415,24 +415,24 @@ Decap Area = (Peak_Current × Δt) / (ΔV × C_per_Unit)
 **参考答案框架**：
 
 1. **确认问题**：
-   - 用 Voltus 跑 dynamic IR drop
-   - 看 hot spot 在哪个模块
+ - 用 Voltus 跑 dynamic IR drop
+ - 看 hot spot 在哪个模块
 
 2. **定位原因**：
-   - 是不是 clock tree 太密 → clock flip 同时翻转
-   - 是不是 memory burst 写入瞬态电流大
-   - 是不是某个模块有"雪崩翻转"（所有 gate 同时 toggle）
+ - 是不是 clock tree 太密 → clock flip 同时翻转
+ - 是不是 memory burst 写入瞬态电流大
+ - 是不是某个模块有"雪崩翻转"（所有 gate 同时 toggle）
 
 3. **修复**（成本由低到高）：
-   - 加密 PG stripe / 加 decap
-   - clock staggering（让不同模块 clock 边沿错开）
-   - 改 floorplan 把 hot module 移到离 power pad 近
-   - RTL 加 pipeline / 拆分 burst
+ - 加密 PG stripe / 加 decap
+ - clock staggering（让不同模块 clock 边沿错开）
+ - 改 floorplan 把 hot module 移到离 power pad 近
+ - RTL 加 pipeline / 拆分 burst
 
 4. **验证**：
-   - 重新跑 Voltus
-   - 确认无回归
-   - 看 timing 是否变化
+ - 重新跑 Voltus
+ - 确认无回归
+ - 看 timing 是否变化
 
 **加分点**：
 - 提到 "动态 IR Drop 仿真需要真实 VCD，不能用 random VCD"
@@ -455,11 +455,11 @@ Decap Area = (Peak_Current × Δt) / (ΔV × C_per_Unit)
 
 ## 五、面试避坑
 
-1. ❌ 把 P = αCV²f 说成 P = αCVf——**平方不能漏**
-2. ❌ 说"Decap 加在空地就行"——必须 legalize，**否则会变 floating cell**
-3. ❌ 不区分 Static / Dynamic IR Drop——面试必问
-4. ❌ 说"Power Gating 完全无代价"——实际有 retention cell、area、wake-up latency
-5. ❌ 漏提 EM 阈值——先进工艺 EM 严重，必查
+1. 把 P = αCV²f 说成 P = αCVf——**平方不能漏**
+2. 说"Decap 加在空地就行"——必须 legalize，**否则会变 floating cell**
+3. 不区分 Static / Dynamic IR Drop——面试必问
+4. 说"Power Gating 完全无代价"——实际有 retention cell、area、wake-up latency
+5. 漏提 EM 阈值——先进工艺 EM 严重，必查
 
 ---
 

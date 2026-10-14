@@ -3,6 +3,7 @@
  * 底部
  */
 const year = new Date().getFullYear();
+import Icon from './Icon.astro';
 ---
 
 <footer class="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
@@ -12,9 +13,9 @@ const year = new Date().getFullYear();
       <div class="md:col-span-2">
         <div class="flex items-center gap-2.5">
           <div
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 text-lg font-bold text-white shadow-md shadow-blue-600/20"
+            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-md shadow-blue-600/20"
           >
-            🔗
+            <Icon name="logo" class="h-5 w-5" />
           </div>
           <span class="text-base font-bold text-slate-900 dark:text-white">
             数字 IC 后端知识库
@@ -31,12 +32,12 @@ const year = new Date().getFullYear();
       <div>
         <h3 class="mb-3 text-sm font-semibold text-slate-900 dark:text-white">内容导航</h3>
         <ul class="space-y-2 text-sm">
-          <li><a href="/basics" class="nav-link">📚 基础知识</a></li>
-          <li><a href="/interview" class="nav-link">📝 八股题库</a></li>
-          <li><a href="/autumn-recruit" class="nav-link">🍂 秋招汇总</a></li>
-          <li><a href="/social-recruit" class="nav-link">💼 社招汇总</a></li>
-          <li><a href="/internship" class="nav-link">🎯 实习汇总</a></li>
-          <li><a href="/tools" class="nav-link">🛠 工具资源</a></li>
+          <li><a href="/basics" class="nav-link">基础知识</a></li>
+          <li><a href="/interview" class="nav-link">八股题库</a></li>
+          <li><a href="/autumn-recruit" class="nav-link">秋招汇总</a></li>
+          <li><a href="/social-recruit" class="nav-link">社招汇总</a></li>
+          <li><a href="/internship" class="nav-link">实习汇总</a></li>
+          <li><a href="/tools" class="nav-link">工具资源</a></li>
         </ul>
       </div>
 

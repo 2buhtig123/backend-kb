@@ -1,11 +1,11 @@
 ---
-title: "ECO（Engineering Change Order）：芯片制造的最后一公里"
-description: "金属层 ECO (Metal-Only ECO, MECO)："
+title: "ECO（Engineering Change Order）：流程与实施方法"
+description: "功能 ECO 与 Metal-Only ECO 的实施流程、spare cell 使用、网表与物理 ECO 的差异。"
 module: basics
 order: 8
 ---
 
-# ECO（Engineering Change Order）：芯片制造的最后一公里
+# ECO（Engineering Change Order）：流程与实施方法
 
 > "我的设计 sign-off 后漏测一个 bug，但流片已不可能改功能了"——这是工程事故。  
 > ECO 就是**补救措施**：用尽量小的改动，让流片出来的芯片变得可用。  
@@ -113,25 +113,25 @@ set all_violations [report_timing -delay max -path full -max_paths 1000 -sort_by
 # 2. 解析违例，提取 path endpoint
 set endpoints_list {}
 foreach_in_collection violation $all_violations {
-    set end [get_object_name [get_attribute $violation endpoint]]
-    lappend endpoints_list $end
+  set end [get_object_name [get_attribute $violation endpoint]]
+  lappend endpoints_list $end
 }
 
 # 3. 使用 ECO Spare Cells
 set spare_cells [get_spare_cells all_spare_cells]
 if {[sizeof_collection $spare_cells] < [llength $endpoints_list]} {
-    puts "warning: not enough spare cells, supply shortage"
+  puts "warning: not enough spare cells, supply shortage"
 }
 
 # 4. 试图插入 BUF1 到 path
 set fixed_count 0
 foreach ep $endpoints_list {
-    set ep_pin [get_pins $ep]
-    set buf_cell [lindex $spare_cells $fixed_count]
-    # 简化处理：实际需要做 ecoPlace
-    echo "Inserting BUF on $ep at $buf_cell..."
-    ecoPlace -check_legality false [get_cell $buf_cell] [get_pins $ep]
-    incr fixed_count
+  set ep_pin [get_pins $ep]
+  set buf_cell [lindex $spare_cells $fixed_count]
+  # 简化处理：实际需要做 ecoPlace
+  echo "Inserting BUF on $ep at $buf_cell..."
+  ecoPlace -check_legality false [get_cell $buf_cell] [get_pins $ep]
+  incr fixed_count
 }
 
 # 5. 重新时序
@@ -139,9 +139,9 @@ update_timing -full
 
 # 6. 验证 fix
 if {[report_timing -delay max -path full -max_paths 100] == 0} {
-    puts "All setup violations fixed"
+  puts "All setup violations fixed"
 } else {
-    puts "Still have violations, manual fix needed"
+  puts "Still have violations, manual fix needed"
 }
 ```
 
@@ -271,15 +271,15 @@ report_decap_distribution -threshold 0.001
 ```tcl
 # Vt swap (Low Vt → High Vt) 减功耗
 foreach cell [get_cells "LVT_*"] {
-    # 把这个 cell 替换为 SVT 版本
-    set hvt_cell [get_lib_cell [get_lib $cell]/[get_name $cell]*_HVT]
-    swap_cell $cell $hvt_cell
+  # 把这个 cell 替换为 SVT 版本
+  set hvt_cell [get_lib_cell [get_lib $cell]/[get_name $cell]*_HVT]
+  swap_cell $cell $hvt_cell
 }
 
 # Vt swap (LVT → ULVT) 加 performance
 foreach cell [get_cells "SVT_*_holdpath_violated"] {
-    set lvt_cell [get_lib_cell ...]
-    swap_cell $cell $lvt_cell
+  set lvt_cell [get_lib_cell ...]
+  swap_cell $cell $lvt_cell
 }
 
 # 每次 swap 后重新 P&R（很小改动即可）
@@ -292,9 +292,9 @@ update_timing
 ```tcl
 # 1. 显示 IR Drop map（需 Voltus / Redhawk）
 analyze_ir_drop \
-    -power {chip.vdd} \
-    -ir_drop_threshold 0.05 \
-    -report ir_drop.rpt
+  -power {chip.vdd} \
+  -ir_drop_threshold 0.05 \
+  -report ir_drop.rpt
 
 # 2. 修复 hot spots
 add_power_strap -layer M5 -width 1 -pitch 50 -at "bouncing_block_X1Y2"
@@ -343,9 +343,9 @@ analyze_ir_drop -power {chip.vdd}
 # - allow_spare_cells = true
 # - spare cell 密度
 set_spare_cells \
-    -cell_type {AND2_X1 OR2_X1 BUF_X1 INV_X1 DFF_X1} \
-    -prefix "ECO_SPARE_" \
-    -ratio 0.02
+  -cell_type {AND2_X1 OR2_X1 BUF_X1 INV_X1 DFF_X1} \
+  -prefix "ECO_SPARE_" \
+  -ratio 0.02
 
 # 在 PT 中导入 spare 信息用于 ECO
 read_spare_cells -file "spare_cell_list.txt"
@@ -359,21 +359,21 @@ read_spare_cells -file "spare_cell_list.txt"
 
 ```
 [1] STA Setup/Hold 违例报告
-        ↓
+      ↓
 [2] 启动 ECO：Innovus → ecoPlace
-        ↓
+      ↓
 [3] 应用 spare cell / buffer 插入
-        ↓
+      ↓
 [4] ecoRoute（重新连接受影响 net）
-        ↓
+      ↓
 [5] ecoOptTiming（重新 PNR 优化）
-        ↓
+      ↓
 [6] update_timing + report_timing（验证）
-        ↓
+      ↓
 [7] Sign-off 验证（STA / PV / IR）
-        ↓
+      ↓
 [8] 生成 ECO 文件（Verilog/SDF/GDSII）
-        ↓
+      ↓
 [9] 提交给 foundary
 ```
 
@@ -386,8 +386,8 @@ read_spare_cells -file "spare_cell_list.txt"
 
 # Step 1: 把 layout 后的 netlist 和 SDF 拉进来做 baseline
 restoreDesign save_layout.enc timing.signoff.lef \
-                 -ref_libs my_tech.lib all_libs \
-                 -tluPlus tlu_plus
+               -ref_libs my_tech.lib all_libs \
+               -tluPlus tlu_plus
 
 # Step 2: 确认 baseline timing
 set_analysis_view -setup func_wc -hold func_bc
@@ -596,7 +596,7 @@ trace_opt -eco -track path_id
 
 ---
 
-## 🎯 你能在 1 个 ECO 项目之后用什么？
+## 你能在 1 个 ECO 项目之后用什么？
 
 按"做 1 个 ECO 项目 → 会的话"排序：
 
@@ -609,7 +609,7 @@ trace_opt -eco -track path_id
 
 ---
 
-## ⚠️ 实战要避的 6 个坑
+## 实战要避的 6 个坑
 
 1. **不要在 ECO 时改 logic if not necessary** —— mask 改 = $10w+ 成本
 2. **不要忽略 ECO 之后的 DRC** —— 修复了 timing 触发了 short，捡了芝麻丢了西瓜

@@ -1,11 +1,11 @@
 ---
-title: "低功耗设计（UPF / Power Intent）— 先进工艺的必答题"
-description: "Ptotal = Pdynamic + Pshort + Pstatic"
+title: "低功耗设计（UPF / Power Intent）：电源域与功耗控制"
+description: "UPF 电源意图描述：电源域、隔离、电平转换、电源开关与 retention，以及动态/静态功耗构成。"
 module: basics
 order: 5
 ---
 
-# 低功耗设计（UPF / Power Intent）— 先进工艺的必答题
+# 低功耗设计（UPF / Power Intent）：电源域与功耗控制
 
 > **为什么需要低功耗设计？**
 > - 待机时间决定用户体验
@@ -74,24 +74,24 @@ create_supply_net VDD_CORE -domain CORE
 
 # Power Switch
 create_power_switch SW_CORE \
-    -domain CORE \
-    -input_supply_port {in VDD_TOP} \
-    -output_supply_port {out VDD_CORE} \
-    -control_port {ctrl u_ctrl/sleep_n} \
-    -on_state {on !ctrl}
+  -domain CORE \
+  -input_supply_port {in VDD_TOP} \
+  -output_supply_port {out VDD_CORE} \
+  -control_port {ctrl u_ctrl/sleep_n} \
+  -on_state {on !ctrl}
 
 # Isolation
 set_isolation ISO_OUT_CORE \
-    -domain CORE \
-    -applies_to outputs \
-    -clamp_value 0 \
-    -isolation_signal u_ctrl/sleep_n
+  -domain CORE \
+  -applies_to outputs \
+  -clamp_value 0 \
+  -isolation_signal u_ctrl/sleep_n
 
 # Retention
 set_retention RET_CORE \
-    -domain CORE \
-    -save_signal {u_ctrl/save} \
-    -restore_signal {u_ctrl/restore}
+  -domain CORE \
+  -save_signal {u_ctrl/save} \
+  -restore_signal {u_ctrl/restore}
 ```
 
 ---
@@ -146,10 +146,10 @@ OFF 状态：VDD_CORE ──[SWITCH]─/─→ CORE（漏电 ≈ 0）
 
 ```
 POWER DOMAIN A (已关闭)        POWER DOMAIN B (在运行)
-         │                              │
-   [Logic]───X───[ISO Cell]───[Logic]   │
-                  ↑                      
-            控制信号（always-on 域）
+       │                              │
+ [Logic]───X───[ISO Cell]───[Logic]   │
+                ↑                      
+          控制信号（always-on 域）
 ```
 
 ### 4.2 Isolation 类型
@@ -164,12 +164,12 @@ POWER DOMAIN A (已关闭)        POWER DOMAIN B (在运行)
 ### 4.3 隔离信号时序
 
 ```
-         Power Domain 关断
-              │
-              ▼
-   ┌──────── 几十 ns ────────┐
-   │                         │
-  t=0       ISO 有效       t=开关稳定
+       Power Domain 关断
+            │
+            ▼
+ ┌──────── 几十 ns ────────┐
+ │                         │
+t=0       ISO 有效       t=开关稳定
 ```
 
 > ISO 必须在 Power Switch 关闭**之前**有效。
@@ -188,8 +188,8 @@ Power Gating 后，模块内 FF 状态**全部丢失**。如果需要保留：
 
 ```
 Retained FF = 主 FF + 影子 FF + 电源开关
-              ↑        ↑         ↑
-          主电源    always-on    控制保存/恢复
+            ↑        ↑         ↑
+        主电源    always-on    控制保存/恢复
 ```
 
 ### 5.3 Retention 信号
@@ -252,8 +252,8 @@ P_dynamic = C · V² · f
 
 ```
 PLL ──→ ICG ──→ Registers
-         ↑
-       enable
+       ↑
+     enable
 ```
 
 - 内部 latch + AND 门
@@ -300,19 +300,19 @@ PLL ──→ ICG ──→ Registers
 
 ```
 RTL + SDC + UPF
-        ↓
-   DC / Genus（综合）
-        ↓
-   PNR（ICC2 / Innovative）
-        - power domain aware
-        - IR drop aware
-        - timing closure
-        ↓
-   PV（Calibre）
-        - LVS (含 UPF 信息)
-        - DRC
-        ↓
-   Sign-off
+      ↓
+ DC / Genus（综合）
+      ↓
+ PNR（ICC2 / Innovative）
+      - power domain aware
+      - IR drop aware
+      - timing closure
+      ↓
+ PV（Calibre）
+      - LVS (含 UPF 信息)
+      - DRC
+      ↓
+ Sign-off
 ```
 
 ---
@@ -321,10 +321,10 @@ RTL + SDC + UPF
 
 | 工具 | UPF 支持 | 特点 |
 |---|---|---|
-| **DC / Genus** | ✅ | 综合阶段插入 power switch / isolation / retention |
-| **ICC2 / Innovative** | ✅ | PNR 阶段按 UPF 做特殊布局布线 |
-| **PrimeTime** | ✅ | UPF-aware STA |
-| **Calibre** | ✅ | UPF-aware LVS |
+| **DC / Genus** | 支持 | 综合阶段插入 power switch / isolation / retention |
+| **ICC2 / Innovative** | 支持 | PNR 阶段按 UPF 做特殊布局布线 |
+| **PrimeTime** | 支持 | UPF-aware STA |
+| **Calibre** | 支持 | UPF-aware LVS |
 
 ---
 
@@ -380,7 +380,7 @@ RTL + SDC + UPF
 
 ---
 
-## 📝 自测题
+## 自测题
 
 1. 动态功耗公式是什么？降 VDD 为什么对动态功耗影响最大？
 2. UPF 是什么？包含哪些核心概念？

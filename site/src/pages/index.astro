@@ -18,7 +18,7 @@ const MODULES = [
   {
     slug: 'basics',
     title: '基础知识',
-    icon: '📚',
+    icon: 'book',
     description: '数字后端工程师的"六件套"：CMOS、STA、CTS、PNR、PV、UPF。从入门到进阶。',
     color: 'blue' as const,
     count: (byModule.basics ?? []).length,
@@ -26,7 +26,7 @@ const MODULES = [
   {
     slug: 'interview',
     title: '八股题库',
-    icon: '📝',
+    icon: 'quiz',
     description: '高频面试题 + 参考答案 + 加分点。覆盖时序、CDC、面积、功耗等核心方向。',
     color: 'purple' as const,
     count: (byModule.interview ?? []).length,
@@ -34,7 +34,7 @@ const MODULES = [
   {
     slug: 'autumn-recruit',
     title: '秋招汇总',
-    icon: '🍂',
+    icon: 'calendar',
     description: '头部 10 家公司投递指南：海思、联发科、NVIDIA、AMD、EDA 三巨头……',
     color: 'amber' as const,
     count: (byModule['autumn-recruit'] ?? []).length,
@@ -42,7 +42,7 @@ const MODULES = [
   {
     slug: 'social-recruit',
     title: '社招汇总',
-    icon: '💼',
+    icon: 'briefcase',
     description: '在职跳槽指南：级别对应、薪资谈判、面试重点。',
     color: 'green' as const,
     count: (byModule['social-recruit'] ?? []).length,
@@ -50,7 +50,7 @@ const MODULES = [
   {
     slug: 'internship',
     title: '实习汇总',
-    icon: '🎯',
+    icon: 'target',
     description: '暑期实习投递、转正答辩、留用决策。',
     color: 'amber' as const,
     count: (byModule.internship ?? []).length,
@@ -58,12 +58,14 @@ const MODULES = [
   {
     slug: 'tools',
     title: '工具资源',
-    icon: '🛠',
+    icon: 'tool',
     description: '脚本、Cheatsheet、书单、博客推荐——提升日常效率。',
     color: 'blue' as const,
     count: (byModule.tools ?? []).length,
   },
 ];
+
+import Icon from '../components/Icon.astro';
 
 const totalDocs = allDocs.length;
 ---
@@ -159,7 +161,7 @@ const totalDocs = allDocs.length;
                     m.color === 'green' && 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-700 dark:from-green-950/60 dark:to-emerald-950/60 dark:text-green-300',
                   ]}
                 >
-                  {m.icon}
+                  <Icon name={m.icon} class="h-5 w-5" />
                 </div>
                 <div>
                   <h3 class="text-lg font-semibold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">

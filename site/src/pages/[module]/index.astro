@@ -3,6 +3,7 @@
  * 模块列表页：/basics, /interview, /autumn-recruit, ...
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
 import Card from '../../components/Card.astro';
 import { getCollection } from 'astro:content';
 
@@ -22,37 +23,37 @@ const { module } = Astro.params;
 const MODULE_META: Record<string, { title: string; icon: string; description: string; color: string }> = {
   basics: {
     title: '基础知识',
-    icon: '📚',
+    icon: 'book',
     description: '数字后端工程师的"六件套"：CMOS、STA、CTS、PNR、PV、UPF。从入门到进阶。',
     color: 'blue',
   },
   interview: {
     title: '八股题库',
-    icon: '📝',
+    icon: 'quiz',
     description: '高频面试题 + 参考答案 + 加分点。覆盖时序、CDC、面积、功耗等核心方向。',
     color: 'purple',
   },
   'autumn-recruit': {
     title: '秋招汇总',
-    icon: '🍂',
+    icon: 'calendar',
     description: '头部 10 家公司投递指南：海思、联发科、NVIDIA、AMD、EDA 三巨头……',
     color: 'amber',
   },
   'social-recruit': {
     title: '社招汇总',
-    icon: '💼',
+    icon: 'briefcase',
     description: '在职跳槽指南：级别对应、薪资谈判、面试重点。',
     color: 'green',
   },
   internship: {
     title: '实习汇总',
-    icon: '🎯',
+    icon: 'target',
     description: '暑期实习投递、转正答辩、留用决策。',
     color: 'amber',
   },
   tools: {
     title: '工具资源',
-    icon: '🛠',
+    icon: 'tool',
     description: '脚本、Cheatsheet、书单、博客推荐——提升日常效率。',
     color: 'blue',
   },
@@ -86,7 +87,7 @@ const EMPTY_MESSAGE: Record<string, string> = {
     <!-- 头部 -->
     <header class="mb-10">
       <div class="flex items-center gap-3">
-        <span class="text-4xl">{meta.icon}</span>
+        <Icon name={meta.icon} class="h-12 w-12 text-blue-600 dark:text-blue-400" />
         <div>
           <h1 class="text-3xl font-bold text-slate-900 dark:text-white lg:text-4xl">
             {meta.title}
@@ -108,15 +109,7 @@ const EMPTY_MESSAGE: Record<string, string> = {
         {docs.map((doc) => (
           <Card
             href={`/docs/${doc.id.replace(/\.md$/, '')}`}
-            icon={
-              meta.color === 'blue'
-                ? '📘'
-                : meta.color === 'purple'
-                  ? '📗'
-                  : meta.color === 'amber'
-                    ? '📕'
-                    : '📙'
-            }
+            icon='doc'
             title={doc.data.title}
             description={doc.data.description}
           />
