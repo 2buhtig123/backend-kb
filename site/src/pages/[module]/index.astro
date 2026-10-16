@@ -14,6 +14,7 @@ export async function getStaticPaths() {
     { params: { module: 'autumn-recruit' } },
     { params: { module: 'social-recruit' } },
     { params: { module: 'internship' } },
+    { params: { module: 'career' } },
     { params: { module: 'tools' } },
   ];
 }
@@ -31,6 +32,12 @@ const MODULE_META: Record<string, { title: string; icon: string; description: st
     title: '八股题库',
     icon: 'quiz',
     description: '高频面试题 + 参考答案 + 加分点。覆盖时序、CDC、面积、功耗等核心方向。',
+    color: 'purple',
+  },
+  career: {
+    title: '求职实战',
+    icon: 'compass',
+    description: '简历怎么写、追问怎么答、计算题怎么手撕——把技术知识换成 offer 的那一层。',
     color: 'purple',
   },
   'autumn-recruit': {
@@ -68,6 +75,7 @@ const docs = (await getCollection('docs'))
 const EMPTY_MESSAGE: Record<string, string> = {
   basics: '基础知识正在持续补充中，敬请期待。',
   interview: '八股题库正在持续补充中，敬请期待。',
+  career: '求职实战内容正在持续补充中。',
   'autumn-recruit': '秋招信息正在持续更新中。',
   'social-recruit': '社招汇总正在筹备中。',
   internship: '实习汇总正在筹备中。',
@@ -117,8 +125,10 @@ const EMPTY_MESSAGE: Record<string, string> = {
       </div>
     ) : (
       <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-lg">🚧</p>
-        <p class="mt-2 text-slate-600 dark:text-slate-400">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-slate-300 text-slate-400 dark:border-slate-700 dark:text-slate-500">
+          <Icon name={meta.icon} class="h-6 w-6" />
+        </div>
+        <p class="mt-3 text-slate-600 dark:text-slate-400">
           {EMPTY_MESSAGE[module!] ?? '该模块正在筹备中。'}
         </p>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-500">

@@ -12,7 +12,7 @@ const docs = defineCollection({
     description: z.string().optional(),
     pubDate: z.coerce.date().optional(),
     updatedDate: z.coerce.date().optional(),
-    module: z.enum(['basics', 'interview', 'autumn-recruit', 'social-recruit', 'internship', 'tools']),
+    module: z.enum(['basics', 'interview', 'career', 'autumn-recruit', 'social-recruit', 'internship', 'tools']),
     order: z.number().default(99),
   }),
 });
