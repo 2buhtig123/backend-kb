@@ -22,6 +22,8 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+// OG 协议要求绝对 URL
+const imageURL = new URL(image, Astro.site ?? Astro.url.origin).href;
 ---
 
 <!DOCTYPE html>
@@ -36,13 +38,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin)
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={image} />
+    <meta property="og:image" content={imageURL} />
     <meta property="og:url" content={canonicalURL} />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
 
     <!-- Canonical -->
     <link rel="canonical" href={canonicalURL} />

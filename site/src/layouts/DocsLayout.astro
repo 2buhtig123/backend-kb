@@ -5,6 +5,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TOC from '../components/TOC.astro';
+import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
 
 interface Props {
@@ -56,6 +57,39 @@ const navItems = allDocs
 
     <!-- 中间：内容 -->
     <article class="min-w-0">
+      <!-- 移动端：本模块文章目录（桌面端由左侧 Sidebar 承担） -->
+      {
+        !hideSidebar && navItems.length > 1 && (
+          <details class="mb-6 rounded-xl border border-slate-200 bg-white lg:hidden dark:border-slate-800 dark:bg-slate-900">
+            <summary class="flex cursor-pointer select-none items-center justify-between px-4 py-3 text-sm font-medium text-slate-900 dark:text-white [&::-webkit-details-marker]:hidden">
+              <span class="flex items-center gap-2">
+                <Icon name={MODULE_META[module]?.icon ?? 'doc'} class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                本模块目录（{navItems.length} 篇）
+              </span>
+              <svg class="h-4 w-4 text-slate-400 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </summary>
+            <ul class="border-t border-slate-200 px-2 py-2 dark:border-slate-800">
+              {navItems.map((item) => (
+                <li>
+                  <a
+                    href={`/docs/${item.slug}`}
+                    class:list={[
+                      'block rounded-md px-3 py-2 text-sm transition-colors',
+                      Astro.url.pathname.includes(item.slug)
+                        ? 'bg-blue-50 font-medium text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                    ]}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )
+      }
       <slot />
     </article>
 

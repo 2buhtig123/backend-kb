@@ -107,6 +107,31 @@
     @apply !rounded-lg !shadow-sm;
   }
 
+  /* 代码块复制按钮 */
+  .code-block-wrapper {
+    @apply relative;
+  }
+
+  .code-copy-btn {
+    @apply absolute right-2 top-2 z-10 rounded-md border border-slate-300 bg-white/90 px-2 py-1 text-xs text-slate-600 opacity-0 shadow-sm backdrop-blur transition-all hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400;
+  }
+
+  .code-block-wrapper:hover .code-copy-btn,
+  .code-copy-btn:focus-visible {
+    @apply opacity-100;
+  }
+
+  .code-copy-btn.is-copied {
+    @apply border-green-400 text-green-600 dark:border-green-500 dark:text-green-400;
+  }
+
+  /* 触屏设备：按钮常显（没有 hover） */
+  @media (hover: none) {
+    .code-copy-btn {
+      @apply opacity-100;
+    }
+  }
+
   /* 表格 */
   table {
     @apply !my-6;

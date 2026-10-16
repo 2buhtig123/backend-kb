@@ -2,18 +2,42 @@
 /**
  * 文档详情页：/docs/basics/01-xxx, /docs/interview/01-xxx, ...
  */
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
-  return docs.map((doc) => ({
-    params: { slug: doc.id.replace(/\.md$/, '') },
-    props: { doc },
-  }));
+
+  // 按模块分组、按 order 排序，用于计算上一篇/下一篇
+  const byModule = new Map<string, any[]>();
+  docs
+    .slice()
+    .sort((a, b) => a.data.order - b.data.order)
+    .forEach((doc) => {
+      const list = byModule.get(doc.data.module) ?? [];
+      list.push(doc);
+      byModule.set(doc.data.module, list);
+    });
+
+  return docs.map((doc) => {
+    const list = byModule.get(doc.data.module) ?? [doc];
+    const idx = list.indexOf(doc);
+    return {
+      params: { slug: doc.id.replace(/\.md$/, '') },
+      props: {
+        doc,
+        prev: idx > 0 ? list[idx - 1] : null,
+        next: idx < list.length - 1 ? list[idx + 1] : null,
+      },
+    };
+  });
 }
 
-const { doc } = Astro.props;
+const { doc, prev, next } = Astro.props;
 const { Content, headings } = await render(doc);
 
 // 提取纯文本简介
@@ -28,6 +52,44 @@ const description =
     }
     return '';
   })();
+
+// 阅读时长：剥离 markdown 语法后按 400 字/分钟估算
+const plain = (doc.body ?? '')
+  .replace(/```[\s\S]*?```/g, ' ')
+  .replace(/`[^`]*`/g, ' ')
+  .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+  .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+  .replace(/[#>*|~_-]/g, '')
+  .replace(/\s+/g, '');
+const readMinutes = Math.max(1, Math.round(plain.length / 400));
+const readLabel = readMinutes >= 60 ? `${Math.round(readMinutes / 60)} 小时` : `${readMinutes} 分钟`;
+
+// 更新时间：frontmatter.updatedDate > git 最后提交时间（Netlify 构建可靠） > 文件 mtime
+// 注意：Astro 5 glob loader 的 doc.id 不带 .md 后缀，两种都试
+const base = path.join(process.cwd(), 'src', 'content', 'docs', doc.id);
+const relPath = fs.existsSync(base) ? base : `${base}.md`;
+let gitDate: Date | null = null;
+try {
+  const out = execSync(`git log -1 --format=%cI -- "${relPath}"`, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim();
+  if (out) gitDate = new Date(out);
+} catch {
+  /* 不在 git 仓库内时忽略 */
+}
+const fileDate = fs.existsSync(relPath) ? fs.statSync(relPath).mtime : null;
+const updated: Date | null = doc.data.updatedDate ?? gitDate ?? fileDate;
+const fmtDate = (d: Date) => `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+
+const MODULE_NAMES: Record<string, string> = {
+  basics: '基础知识',
+  interview: '八股题库',
+  'autumn-recruit': '秋招汇总',
+  'social-recruit': '社招汇总',
+  internship: '实习汇总',
+  tools: '工具资源',
+};
 ---
 
 <DocsLayout
@@ -42,12 +104,7 @@ const description =
       <a href="/" class="hover:text-blue-600 dark:hover:text-blue-400">首页</a>
       <span class="mx-1">/</span>
       <a href={`/${doc.data.module}`} class="hover:text-blue-600 dark:hover:text-blue-400">
-        {doc.data.module === 'basics' && '基础知识'}
-        {doc.data.module === 'interview' && '八股题库'}
-        {doc.data.module === 'autumn-recruit' && '秋招汇总'}
-        {doc.data.module === 'social-recruit' && '社招汇总'}
-        {doc.data.module === 'internship' && '实习汇总'}
-        {doc.data.module === 'tools' && '工具资源'}
+        {MODULE_NAMES[doc.data.module]}
       </a>
     </nav>
     <h1 class="text-balance text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
@@ -58,6 +115,21 @@ const description =
         {description}
       </p>
     )}
+    <!-- 元信息：阅读时长 + 更新时间 -->
+    <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="doc" class="h-4 w-4" />
+        约 {readLabel}
+      </span>
+      {updated && (
+        <span class="inline-flex items-center gap-1.5">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          更新于 {fmtDate(updated)}
+        </span>
+      )}
+    </div>
   </header>
 
   <!-- 正文 -->
@@ -65,19 +137,103 @@ const description =
     <Content />
   </div>
 
-  <!-- 底部导航 -->
-  <nav class="mt-16 flex items-center justify-between border-t border-slate-200 pt-6 text-sm dark:border-slate-800">
-    <a href={`/${doc.data.module}`} class="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">
-      ← 返回
-      {doc.data.module === 'basics' && '基础知识'}
-      {doc.data.module === 'interview' && '八股题库'}
-      {doc.data.module === 'autumn-recruit' && '秋招汇总'}
-      {doc.data.module === 'social-recruit' && '社招汇总'}
-      {doc.data.module === 'internship' && '实习汇总'}
-      {doc.data.module === 'tools' && '工具资源'}
-    </a>
-    <a href="/" class="text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">
-      首页 →
-    </a>
+  <!-- 底部：上一篇 / 下一篇 -->
+  <nav class="mt-16 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    {
+      prev ? (
+        <a
+          href={`/docs/${prev.id.replace(/\.md$/, '')}`}
+          class="group card !p-4"
+        >
+          <span class="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+            <svg class="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5m7 7l-7-7 7-7"></path>
+            </svg>
+            上一篇
+          </span>
+          <span class="mt-1 block text-sm font-medium text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+            {prev.data.title}
+          </span>
+        </a>
+      ) : (
+        <a href={`/${doc.data.module}`} class="group card !p-4">
+          <span class="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+            <svg class="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5m7 7l-7-7 7-7"></path>
+            </svg>
+            返回模块
+          </span>
+          <span class="mt-1 block text-sm font-medium text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+            {MODULE_NAMES[doc.data.module]}目录
+          </span>
+        </a>
+      )
+    }
+    {
+      next ? (
+        <a
+          href={`/docs/${next.id.replace(/\.md$/, '')}`}
+          class="group card !p-4 sm:text-right"
+        >
+          <span class="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 sm:justify-end">
+            下一篇
+            <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14m-7-7l7 7-7 7"></path>
+            </svg>
+          </span>
+          <span class="mt-1 block text-sm font-medium text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+            {next.data.title}
+          </span>
+        </a>
+      ) : (
+        <a href="/" class="group card !p-4 sm:text-right">
+          <span class="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 sm:justify-end">
+            回到首页
+            <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14m-7-7l7 7-7 7"></path>
+            </svg>
+          </span>
+          <span class="mt-1 block text-sm font-medium text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+            数字 IC 后端知识库
+          </span>
+        </a>
+      )
+    }
   </nav>
 </DocsLayout>
+
+<!-- 代码块复制按钮 -->
+<script>
+  document.querySelectorAll('.prose pre').forEach((pre) => {
+    if (pre.parentElement?.classList.contains('code-block-wrapper')) return;
+
+    // 外层 wrapper 承载按钮，pre 自己横向滚动互不干扰
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-block-wrapper';
+    pre.parentNode?.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'code-copy-btn';
+    btn.setAttribute('aria-label', '复制代码');
+    btn.textContent = '复制';
+
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = '已复制';
+        btn.classList.add('is-copied');
+      } catch {
+        btn.textContent = '复制失败';
+      }
+      setTimeout(() => {
+        btn.textContent = '复制';
+        btn.classList.remove('is-copied');
+      }, 1600);
+    });
+
+    wrapper.appendChild(btn);
+  });
+</script>
