@@ -5,6 +5,7 @@ module: basics
 order: 0
 references:
   - "《数字集成电路物理设计》第 6 章 静态时序分析"
+verified: true
 ---
 
 # 静态时序分析（STA）：概念、公式与修复策略
@@ -277,9 +278,12 @@ Mode2 (Scan)    × Corner3 (SS125c) +
 
 ### Q1：Setup 违例，Hold 也违例，先修哪个？
 
-**答**：先修 Hold。
-- Hold 违例必须**全部修完**才能跑下一步（Hold 与频率无关，越晚修复越复杂）
-- Setup 违例可以通过降频、Pipeline 等方式临时缓解
+**答**：先修 Setup，Hold 留到时钟树真实之后（Post-CTS / Post-Route）再修。
+
+- Setup 决定芯片能不能跑到目标频率，早修早收敛；书上第 6 章也明确"先解决 setup 违例的问题，然后再处理 hold 违例"（《数字集成电路物理设计》p.165）
+- Hold 与频率无关、只与数据路径最短延迟和 skew 有关；Pre-CTS 时钟是理想的，此时修 Hold 只是给假数字打工，还会吃掉 Setup 余量
+- Sign-off 前 Hold 必须全部清干净，但那是 Post-Route 的事
+- 现代 EDA 的 IPO / 优化引擎可以同时处理 setup 与 hold，但优先级仍是 setup 在前（p.165）
 
 ### Q2：Hold 修不掉怎么办？
 

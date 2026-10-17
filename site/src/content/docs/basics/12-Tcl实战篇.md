@@ -5,6 +5,7 @@ module: basics
 order: 11
 references:
   - "各 EDA 工具官方 User Guide（Innovus / ICC2 / PrimeTime）"
+verified: true
 ---
 
 # Tcl 实战：后端工程师必备的工程脚本手册
@@ -173,6 +174,9 @@ proc safe_run {cmd_name script} {
 }
 
 # 用法
+# 以下为 Synopsys ICC2 风格（place_opt_design / clock_opt / route_opt）
+# Cadence Innovus 对应命令为 placeDesign / ccopt_design / routeDesign / optDesign
+# 两套命令不要混着写进同一个脚本，否则跑不通
 safe_run "Floorplan" { initialize_floorplan ... }
 safe_run "Place"     { place_opt_design }
 safe_run "CTS"       { clock_opt ... }
@@ -237,8 +241,12 @@ proc do_placement { } {
 }
 
 # ---------- 4. CTS ----------
+# 注意：set_db 是 Cadence Innovus 的语法，clock_opt 是 Synopsys ICC2 的语法，两者不能混用。
+# 下面统一按 ICC2 写；Innovus 下应写成：
+#   set_db cts_target_skew 0.05
+#   ccopt_design
 proc do_cts { } {
-  set_db cts_target_skew 0.05
+  set_clock_tree_options -target_skew 0.05
   clock_opt -prefix cts
   print_info "CTS done"
 }
@@ -252,7 +260,7 @@ proc do_routing { } {
 
 # ---------- 6. Optimization ----------
 proc do_opt { } {
-  opt_design -prefix opt
+  refine_opt -prefix opt      ;# ICC2 后期优化；Innovus 对应 optDesign
   print_info "Optimization done"
 }
 

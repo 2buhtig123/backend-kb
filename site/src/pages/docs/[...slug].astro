@@ -133,7 +133,16 @@ const MODULE_NAMES: Record<string, string> = {
     {
       doc.data.references && doc.data.references.length > 0 && (
         <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/60">
-          <span class="font-medium text-slate-700 dark:text-slate-300">参考依据</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-medium text-slate-700 dark:text-slate-300">参考依据</span>
+            {
+              doc.data.verified && (
+                <span class="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  已按主参考书逐页核对
+                </span>
+              )
+            }
+          </div>
           <ul class="mt-1.5 space-y-1 text-slate-600 dark:text-slate-400">
             {doc.data.references.map((r: string) => (
               <li class="flex gap-2">

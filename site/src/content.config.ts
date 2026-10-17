@@ -16,6 +16,8 @@ const docs = defineCollection({
     order: z.number().default(99),
     // 参考依据：本篇内容对应哪本参考书的哪一章，供读者交叉核对
     references: z.array(z.string()).optional(),
+    // 是否已按主参考书逐页核对过（true = 正文中出现的页码引用均经核对）
+    verified: z.boolean().default(false),
   }),
 });
 

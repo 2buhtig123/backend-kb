@@ -5,6 +5,7 @@ module: basics
 order: 1
 references:
   - "《数字集成电路物理设计》第 4 章 时钟树综合"
+verified: true
 ---
 
 # 时钟树综合（CTS）：时钟树结构与实现流程
@@ -22,15 +23,15 @@ references:
 把时钟想象成"水管"，PLL 是水泵，每个寄存器是一个水龙头。
 - 如果水泵压力一样，水管长度不一样，水到达每个龙头的时间不一样
 - 这就是**时钟 Skew（偏差）**
-- 如果 Skew 太大，**离 PLL 近的寄存器先采数据、远的晚一拍**——Setup 可能违例
+- 如果 Skew 太大，要看偏差的方向：时钟**逆着数据流**方向偏（Launch 晚到、Capture 早到）时 Setup 吃紧；反过来（Launch 早到、Capture 晚到）时 Setup 反而宽松、Hold 变紧（《数字集成电路物理设计》p.117 图 4-43/4-44）
 
 ### 1.2 CTS 的目标
 
 构建一棵**平衡的时钟分布网络**，使得：
 1. **Skew 最小**：所有寄存器的时钟到达时间尽量接近
-2. **Latency 合理**：时钟从 PLL 到寄存器的总延迟可控（不能太长，否则 Hold 修不掉）
-3. **功耗低**：时钟网络是芯片最大功耗来源之一（典型 30-40%）
-4. **DRC Clean**：不违反 dant-dcc、dant-drc、dant-tap 等物理规则
+2. **Latency 合理**：插入延迟与偏差是一对权衡——延迟大则 buffer 级多、偏差容易做小但时钟树功耗大；延迟小则偏差难收敛（《数字集成电路物理设计》p.100）。一般要求插入延迟不超过周期的 50%（p.119）
+3. **功耗低**：时钟网络的跳变功耗常占芯片总功耗**接近 50% 甚至更高**（《数字集成电路物理设计》p.118），降功耗手段是减少 buffer 级数、降低 transition、缩短时钟线长（p.118）
+4. **DRC Clean**：不违反 max_transition、max_capacitance、max_fanout 等物理规则
 
 ---
 
@@ -78,8 +79,9 @@ PLL ──┬── H ──┬── H ──┬── ...
     ▼        ▼        ▼
  sinks   sinks   sinks
 ```
-- 对称结构，Skew 天然小
-- **缺点**：面积浪费大，sinks 不一定均匀分布
+- 对称结构：中心到各叶节点距离相等，理论偏差为 0（《数字集成电路物理设计》p.103）
+- **缺点**：布线比较困难、难以协调一致，一般只适用于较小的设计（p.103）
+- 变体：**裁剪树（tapered H-tree）**——分支线宽逐级减为前一级的 1/2，用来抑制反射电流（p.104）
 
 #### (b) Fishbone
 ```
@@ -137,7 +139,7 @@ PLL ──┬───┬───┬───
 - Setup 检查变严（Skew 已确定）
 - Hold 检查可能更细（Skew 影响 Hold）
 - 优化数据路径（修复 setup/hold violation）
-- 时钟树 DRC 检查（dant-drc、dant-dcc）
+- 时钟树 DRC 检查（max_transition、max_capacitance）
 
 ---
 
@@ -158,7 +160,7 @@ set_clock_tree_options -clock CLK \
   -buffer {CK_INV8 CK_INV16 CK_BUFX8} \
   -max_transition 0.1 \
   -max_capacitance 0.2 \
-  -max_fanout 25 \
+  -max_fanout 16 \
   -target_skew 0.05 \
   -target_max_drant-dcc 0.3
 
@@ -172,9 +174,9 @@ set_clock_gating_check -setup 0.1 -hold 0.05
 |---|---|---|
 | `max_transition` | 时钟 net 最大 transition | 工艺决定 |
 | `max_capacitance` | 单个 net 最大负载 | 工艺决定 |
-| `max_fanout` | 单个 buffer 最大扇出 | 25-50 |
+| `max_fanout` | 单个 buffer 最大扇出 | 12-16（书中 0.18/0.13 µm 算例，p.120） |
 | `target_skew` | 工具目标 Skew | 50-150 ps |
-| `max_drant-dcc` | dant-dcc 最大值 | 0.2-0.3 ns |
+| `max_capacitance` | 单个 sink 最大负载电容 | 按库与工艺给定 |
 | `layer` | 路由层偏好 | M3/M4 以上（高层） |
 
 ---
@@ -253,10 +255,12 @@ ICG 单元是专用 cell，**Latch + AND 门**，避免毛刺。
 
 OCV 让同一颗芯片不同位置的 Cell 延迟不一样 → Skew 也带 OCV 偏差。
 
-**CTS 工具会做的事**：
-- 主动加 5-10% 的 Skew margin
-- 用 AOCV/POCV 重新分析
-- 在关键路径加 buffer "抵抗" OCV
+**OCV 在时序分析里怎么落地**：
+- 通过 scaled OCV（片上误差调节法）对 early / late 路径分别打 derate：书中算例对 setup 与 hold 各增加 **20%** 的预算，
+  典型写法 `set_timing_derate -max -early 0.8 -late 1.0`、`-min -early 1.0 -late 1.2`（《数字集成电路物理设计》p.108）
+- 同一颗 CLKBUF 标称 0.29 ns、实际 0.25 ns 这类差异就是 OCV 的来源（p.107）
+- 注意：这是**时序分析**的 derate，不是 CTS 工具给 skew 额外加的 margin；不要混为一谈
+- 先进工艺进一步用 AOCV / POCV 替代 flat OCV
 
 ---
 
@@ -274,7 +278,7 @@ OCV 让同一颗芯片不同位置的 Cell 延迟不一样 → Skew 也带 OCV �
 ```tcl
 report_clock_timing -type skew
 report_clock_timing -type latency
-report_clock_timing -type dant-dcc
+report_clock_timing -type transition   ;# 或用 report_constraint -all_violators 查 CTS 后的 DRV
 ```
 
 ### Q3：Skew 太大怎么办？
@@ -288,7 +292,7 @@ report_clock_timing -type dant-dcc
 
 - `max_transition` 违例：加 buffer
 - `max_capacitance` 违例：加 buffer
-- `max_dant-dcc` 违例：调整分支长度
+- `max_transition` 违例：调整分支长度
 
 ---
 

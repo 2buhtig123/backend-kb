@@ -7,6 +7,7 @@ references:
   - "《数字集成电路物理设计》第 1 章 集成电路物理设计方法"
   - "《数字集成电路物理设计》第 3 章 布图规划和布局"
   - "《数字集成电路物理设计》第 5 章 布线"
+verified: true
 ---
 
 # 布局布线（PNR / APR）：从 Floorplan 到 Routing
@@ -53,7 +54,8 @@ Floorplan → Placement → CTS → Routing → Optimization
   │           │         │        └→ Global + Detail Routing
   │           │         └→ Clock Tree Synthesis
   │           └→ Standard Cell Placement
-  └→ 电源规划 + Macro 摆放 + Blockage
+  └→ I/O 与 pad 摆放 + Macro 摆放与通道 + 电源规划（PG ring/strap）
+       （书序：I/O → 模块布放与通道 → 电源规划，《数字集成电路物理设计》p.58/p.65/p.67）
 ```
 
 > **面试考点**：面试官问"PNR 流程有哪些步骤"？必须答出 **Floorplan → Placement → CTS → Routing → Optimization** 五大阶段，缺一不可。
@@ -64,7 +66,14 @@ Floorplan → Placement → CTS → Routing → Optimization
 
 ### 3.1 Floorplan（Floorplan / 布局规划）
 
-**目标**：决定芯片的整体形状，摆放 MACRO、电源带，决定 row 方向。
+**目标**：确定并估算芯片面积与形状，摆放 I/O 与 pad、宏单元与布线通道，做电源规划，决定 row 方向。
+
+参考书序（《数字集成电路物理设计》p.56–81）：
+1. 面积与形状估算（die / core size、aspect ratio）
+2. **I/O 接口单元的放置与供电**（p.58：需综合考虑印制板走线、封装形式、供电情况以及内部模块结构）
+3. 模块（宏单元）布放与布线通道（p.65）
+4. 电源规划（p.67：在布图规划后或在其过程中交叉完成）
+5. 布局（p.78）与布局后预估
 
 #### 关键决策
 | 决策 | 说明 |
@@ -74,19 +83,22 @@ Floorplan → Placement → CTS → Routing → Optimization
 | **Aspect ratio** | 长宽比（一般 1:1） |
 | **Row orientation** | 标准单元格子行走用（site row，HR / VT） |
 | **MACRO 摆放** | SRAM / PLL / PHY 等 |
+| **halo / 通道** | macro 四周不允许摆标准单元的"布图晕道"，专供布线（p.65） |
 | **PAC 边界** | Block 之间的边界 |
+| **时钟网络预规划** | 布局之前先规划时钟网络分布，可减少偏差、提高性能；一般排在电源网络规划之后（p.57、p.76） |
 
 #### 关键指标
 - **Core utilization** = 标准单元面积 / Core 内总面积
-- 太低（< 50%）：面积浪费
-- 太高（> 85%）：拥塞风险
+- 初始利用率**低于 70%** 时较容易布通（p.79）
+- **高于 85%** 时会出现较大的拥塞（p.79）
+- 工程上常取 70%~80% 作为起步值
 - **Channel utilization**：通道密度
 
 #### 必背概念
 
 **PAC（Placement and Routing Boundary）**：
 - 每个 block 都有 PAC，block 内 PNR 在 PAC 内完成
-- PAC 与 Core 之间留 1-2 µm gap（防止 DRC 问题）
+- PAC / block 边界与相邻结构的间距按 spacing rule 与 halo 取定：书上算例中模块边界距实例 24.6~72.1 μm（p.66 表 3-1），模块与电源环间距约 10 μm（p.80 例 3-9）；不要拍 1~2 μm
 
 **Endcap Cell**：
 - 每行标准单元两端加的虚拟 cell
@@ -101,10 +113,12 @@ Floorplan → Placement → CTS → Routing → Optimization
 - 去耦电容，稳定电源
 - 按密度规则（如每 50 µm 一个）插入
 
-#### Floorplan 阶段 DRC
-- **drc_drc**（Stripe 间距）
-- **drc_drc**（Endcap 间距）
-- **Tap density**
+#### Floorplan / 布局阶段的检查项
+- **PG short / open**：`verifyConnectivity` 一类检查，确认电源网没有短路、开路和供电不足（p.68）
+- **stripe / endcap 间距**：按 DRC 规则
+- **tap density / well tie 密度**：按 DRC 规则
+- **congestion map**：布线格内所需通道数 vs 可用通道数
+- **时序（setup）预估**：布局后只做 setup 预估，hold 违例留到 CTS 之后修（p.81）
 
 ---
 
@@ -116,14 +130,15 @@ Floorplan → Placement → CTS → Routing → Optimization
 
 | 子阶段 | 说明 |
 |---|---|
-| **Coarse Placement** | 全局粗放，考虑拥塞和时序 |
-| **Legalization** | 把 cell 放到 row 上不重叠 |
-| **Timing-Driven Placement** | 考虑时序目标 |
-| **Congestion-Driven Placement** | 考虑拥塞 |
+| **结群布局 clustering** | 把相连的单元聚成群（《数字集成电路物理设计》p.82） |
+| **全局布局 global placement** | 粗略分配位置 |
+| **详细布局 detailed placement** | 精细调整 + **合法化 legalization**（放到 row 上不重叠） |
+
+（按优化目标另分三类：可布通性驱动 routability-driven、时序驱动 timing-driven、串扰感知 crosstalk-aware，p.83——注意"目标"和"步骤"不是一回事）
 | **Optimization** | 调 cell 大小、buffer 插入 |
 
 #### 关键指标
-- **Congestion map**：每个 GCell 的拥塞程度（0-1），>0.8 表示拥塞
+- **Congestion map**：每个 GCell 的拥塞程度（0-1），>0.8 表示拥塞（工具经验值）。书上口径是：实际需要的通道超过现有通道 **5%** 即表明拥塞程度比较大（《数字集成电路物理设计》p.81），面试时别说"CR < 1 就安全"
 - **Placement density**：每个 GCell 内的 cell 密度
 
 #### 常见问题
@@ -163,7 +178,7 @@ Floorplan → Placement → CTS → Routing → Optimization
 #### 路由层
 - **M1 / M2 / M3 / ...**：金属层
 - 低层（薄）：M1、M2——单元内/单元间
-- 高层（厚）：M7、U8、U9——长距离、电源、时钟
+- 高层（厚）：M7、M8、M9——长距离、电源、时钟
 
 #### 资源紧张时的策略
 - **Track utilization**：> 80% 开始紧张

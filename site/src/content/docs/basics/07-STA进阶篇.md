@@ -5,6 +5,7 @@ module: basics
 order: 6
 references:
   - "《数字集成电路物理设计》第 6 章 静态时序分析"
+verified: true
 ---
 
 # STA 深入：从入门到能上手工程（进阶版）
@@ -488,10 +489,12 @@ read_parasitics -max_line_length 1024 ./spef/chip_route.spef  ;# SPEF 文件
 update_timing -full
 ```
 
-**SPEF 三种精度**：
-- `D` (Detailed): 5nm+ 必备
-- `R` (Reduced): 7nm+ 早期可行
-- `P` (Partial): 不推荐 sign-off
+**寄生参数文件的三种格式**（SPF，注意不是 SPEF 的精度等级）：
+- `DSPF`（Detailed SPF）：详细标准寄生参数格式
+- `RSPF`（Reduced SPF）：简化标准寄生参数格式
+- `SPEF`（Standard Parasitic Exchange Format）：标准寄生参数交换格式，sign-off 最常用
+
+（《数字集成电路物理设计》p.149）
 
 ### 6.3 真正的 sign-off 是哪一步？
 
@@ -521,7 +524,7 @@ update_timing -full
 
 **答**：
 - setup：用 buffer/sizing 来增大延迟很容易
-- hold：必须**减小延迟**，方法有限：插 buffer 抵消、down-size、用 HVT cell
+- hold：必须**增大**数据路径的延迟，方法有限：插 buffer / delay cell、down-size 降驱动、换 HVT 慢 cell。书上同样表述为"增长数据路径的延迟，或加快时钟到达 FF2"（《数字集成电路物理设计》p.156）
 - hold 路径没有 max delay 概念，是**必须为 0 的最少**，且和 OCV/Vt 等变化敏感
 
 ### Q4：CRPR 是怎么算出来的？

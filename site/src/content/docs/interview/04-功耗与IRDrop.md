@@ -5,6 +5,7 @@ module: interview
 order: 3
 references:
   - "《数字集成电路物理设计》第 7 章 功耗分析"
+verified: true
 ---
 
 # 八股题库 · 04 功耗与 IR Drop
@@ -26,7 +27,7 @@ references:
 
 **动态功耗公式**：
 ```
-P_dynamic = α × C × V² × f
+P_dynamic = 1/2 × α × C × V² × f   （《数字集成电路物理设计》p.173 式 7-10：P = 1/2 · α · f_CLK · C_L · V_DD²）
 α = switching activity（翻转率，0~1）
 C = 负载电容
 V = 电压
@@ -37,14 +38,14 @@ f = 频率
 
 ### 1.2 IR Drop
 
-**定义**：从 Power Pad 到芯片内部 cell，电源走线上的**压降**。导致 cell 实际电压低于标称值。
+**定义**：包含两种形式——内部节点电源电压 V_DD 低于供电凸点的**电压降**，以及内部节点地电压 V_SS 高于供电凸点的**地弹**（ground bounce，《数字集成电路物理设计》p.175）。合称 IR Drop，导致 cell 实际电压低于标称值。
 
 **两类**：
 - **Static IR Drop**：平均电流导致的压降。芯片稳态工作即可见。
 - **Dynamic IR Drop**：瞬态大电流（如 clock 边沿、burst write）导致的压降。**更致命**——通常 2~3x 静态值。
 
 **影响**：
-- IR Drop 5% → 性能下降 5%~10%（时序违例）
+- IR Drop 5% → 互连线延迟增大约 10%~15%（书中算例约 9.5%，p.178），进而引发时序违例——不要低估成 5%
 - IR Drop 10% → 功能错误（hold/setup 违例）
 - IR Drop > 15% → latch-up 风险
 
@@ -54,7 +55,7 @@ f = 频率
 |---|---|---|
 | Static IR Drop | < 3% | 全部 |
 | Dynamic IR Drop | < 5%~7% | 7nm 严格 |
-| Total（Stack）| < 8% | — |
+| Total（VDD 压降 + 地弹）| < 5% VDD | 书上要求：电源和地弹总电压降控制在供电电压的 5% 以内（《数字集成电路物理设计》p.177） |
 
 ### 1.3 EM（Electromigration）
 
@@ -85,7 +86,7 @@ f = 频率
 **参考答案**：
 
 ```
-P_dynamic = α × C × V² × f
+P_dynamic = 1/2 × α × C × V² × f   （《数字集成电路物理设计》p.173 式 7-10：P = 1/2 · α · f_CLK · C_L · V_DD²）
 ```
 
 | 参数 | 物理意义 | 影响 |
