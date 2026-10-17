@@ -3,6 +3,8 @@ title: "低功耗设计（UPF / Power Intent）：电源域与功耗控制"
 description: "UPF 电源意图描述：电源域、隔离、电平转换、电源开关与 retention，以及动态/静态功耗构成。"
 module: basics
 order: 5
+references:
+  - "《数字集成电路物理设计》第 9 章 低功耗设计技术与物理实施"
 ---
 
 # 低功耗设计（UPF / Power Intent）：电源域与功耗控制
@@ -333,16 +335,18 @@ RTL + SDC + UPF
 ### Q1：Power Domain 切换顺序？
 
 **答**：
-1. Power Switch 关断（断电）
-2. Isolation 有效（保护接收域）
-3. 电源稳定（电压为 0）
-4. （Retention 保存状态）
+1. Retention save（先把 FF 状态存进影子寄存器）
+2. Isolation 有效（钳住输出，保护接收域）
+3. Power Switch 关断（断电）
+4. 等待电源泄放到 0
 5. 模块关闭
+
+注意顺序不能反：isolation 必须在断电**之前**生效，retention save 也必须在断电之前完成——否则关断瞬间输出浮空会往接收域灌电流，状态也随电源一起丢了。
 
 反向：
 1. Power Switch 开启
-2. 电源稳定
-3. Retention 恢复
+2. 等电源稳定
+3. Retention restore
 4. Isolation 释放
 5. 模块正常工作
 

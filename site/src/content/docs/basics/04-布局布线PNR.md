@@ -3,6 +3,10 @@ title: "布局布线（PNR / APR）：从 Floorplan 到 Routing"
 description: "PNR 完整流程：Floorplan、Placement、CTS、Routing 与优化，各阶段的核心指标与常见问题。"
 module: basics
 order: 3
+references:
+  - "《数字集成电路物理设计》第 1 章 集成电路物理设计方法"
+  - "《数字集成电路物理设计》第 3 章 布图规划和布局"
+  - "《数字集成电路物理设计》第 5 章 布线"
 ---
 
 # 布局布线（PNR / APR）：从 Floorplan 到 Routing
@@ -138,7 +142,7 @@ Floorplan → Placement → CTS → Routing → Optimization
 
 简单回顾：
 - 目标：Skew 最小、Latency 合理、DRC Clean
-- 工具：CCOpt（ICC2）/ CCOpt（Innovative）
+- 工具：CCOpt-CTS（Cadence Innovus）/ clock_opt + CCD（Synopsys ICC2）
 - 输出：时钟树 + 时钟 net
 
 ---
@@ -223,7 +227,7 @@ create_analysis_view \
 
 **Setup 违例**：
 - 调 cell 驱动（X2 → X4）
-- 换 fast cell（VTL → VTH → VTUL）
+- 换 fast cell（HVT → SVT → LVT → ULVT，速度递增、漏电也递增）；漏电优先时反向换
 - 插入 buffer
 
 **Hold 违例**：

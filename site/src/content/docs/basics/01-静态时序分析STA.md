@@ -3,6 +3,8 @@ title: "静态时序分析（STA）：概念、公式与修复策略"
 description: "Setup/Hold 公式推导、时序路径分类、修复策略与面试高频问题。"
 module: basics
 order: 0
+references:
+  - "《数字集成电路物理设计》第 6 章 静态时序分析"
 ---
 
 # 静态时序分析（STA）：概念、公式与修复策略
@@ -51,7 +53,7 @@ STA 把电路抽象成**时序图（Timing Graph）**，用图算法遍历所有
 | **Reg-to-Reg** | 寄存器 CLK | 寄存器 D | Setup + Hold |
 | **In-to-Reg** | Input Port | 寄存器 D | Setup + Hold |
 | **Reg-to-Out** | 寄存器 CLK | Output Port | Setup + Hold |
-| **In-to-Out** | Input Port | Output Port | Setup only（异步路径） |
+| **In-to-Out** | Input Port | Output Port | 纯组合路径，用 set_max_delay / set_min_delay 约束，max 与 min 都要查 |
 
 > **面试考点**：问你"一条完整时序路径包含哪些延迟"？要答出：**Clock Latency + Clock Skew + Cell Delay + Net Delay**。漏一个就要扣分。
 
@@ -74,7 +76,11 @@ Setup Slack = (Capture Clock Arrival Time)
 或者更直观的：
 
 ```
-Setup Slack = T_cycle - (T_clk2Q + T_logic + T_net + T_setup) - T_uncertainty - T_skew
+Setup Slack = T_cycle + T_skew - (T_clk2Q + T_logic + T_net + T_setup) - T_uncertainty
+
+Hold Slack  = (T_clk2Q + T_logic + T_net) - T_skew - T_hold
+
+（全文约定 skew = T_capture - T_launch：正 skew 帮 Setup、害 Hold）
 ```
 
 **关键点**：
@@ -146,18 +152,23 @@ OCV 指**同一颗芯片上不同位置**因制造工艺差异导致的延迟偏
 
 如果不考虑 OCV，Setup Slack 会**过于乐观**——它假设 Launch 路径慢、Capture 路径快。但实际可能反过来。
 
-**保守的 OCV Derate**：
-- 数据路径：+5%（更慢，更悲观）
-- 时钟路径：-5%（更快，更悲观）
+**保守的 OCV derate 必须分 late / early 两个方向，且 Setup 与 Hold 相反**：
 
-这样算出来的 Slack 才安全。
+| 检查 | Launch 时钟 | 数据路径 | Capture 时钟 |
+|---|---|---|---|
+| Setup | late（+） | late（+） | early（−） |
+| Hold | early（−） | early（−） | late（+） |
+
+把时钟路径一律打 −5% 会让 launch 时钟变快，对 Setup 反而是乐观方向，少算了悲观量。
 
 ### 5.3 CPPR / CRPR
 
 **CPPR（Clock Path Pessimism Removal）**：识别 Launch 和 Capture 共享的时钟路径，把"重复计算的悲观性"扣除。
 
 ```
-Setup Slack（含 OCV 悲观） - CPPR = 真实 Setup Slack
+Setup Slack（含 OCV 悲观量） + CPPR = 更接近真实的 Setup Slack
+
+（CPPR 是「去掉多余悲观」，把公共段上重复扣掉的那部分延迟加回 slack，slack 应变大）
 ```
 
 CPPR 是工具自动做的（PT / Tempus），但你要知道为什么有这个参数——**面试可能问 OCV 和 CPPR 的区别**。
@@ -272,7 +283,9 @@ Mode2 (Scan)    × Corner3 (SS125c) +
 
 ### Q2：Hold 修不掉怎么办？
 
-**答**：检查时钟树 Skew。如果 Capture 时钟路径太短，导致时钟过早到达，可以人为**减慢 Capture 时钟**（skew 偏大帮助 Hold）。
+**答**：先看 skew 的方向。约定 skew = T_capture − T_launch，Hold slack 随 skew 增大而**减小**，所以 Hold 违例的常见根因是 Capture 时钟相对 Launch 到得太晚（正 skew），或者数据路径太快。
+
+修法：加快 Capture 时钟 / 推迟 Launch 时钟（让 skew 变负），或给数据路径插 delay cell。**减慢 Capture 时钟是修 Setup 的手段**，用在这里只会让 Hold 更糟。
 
 ### Q3：什么是 Timing Sign-off Clean？
 

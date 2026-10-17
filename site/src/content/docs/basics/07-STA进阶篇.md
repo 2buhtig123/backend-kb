@@ -3,6 +3,8 @@ title: "STA 深入：从入门到能上手工程（进阶版）"
 description: "Liberty 库解析、SDC 约束实践、OCV/AOCV/POCV、SI-aware 分析等 STA 进阶主题。"
 module: basics
 order: 6
+references:
+  - "《数字集成电路物理设计》第 6 章 静态时序分析"
 ---
 
 # STA 深入：从入门到能上手工程（进阶版）
@@ -107,7 +109,7 @@ cell (NAND2_X1) {                                           ← 一个标准 cel
 | **CCS (Composite Current Source)** | 多张电流波形 | 高 | 必用 |
 | **ECSM (Effective Current Source Model)** | Synopsys 版 CCS | 高 | 必用 |
 
-**NLDM 为什么不够用**：NLDM 把门延迟简化为"输入转换时间 + 输出负载"两个变量，**忽略了输入波形形状和输出负载沿 RC 分布的细节**。7nm 以下，wire RC 主导，NLDM 会比真实延迟**误差 ±30ps**——超过一个时钟周期。
+**NLDM 为什么不够用**：NLDM 把门延迟简化为"输入转换时间 + 输出负载"两个变量，**忽略了输入波形形状和输出负载沿 RC 分布的细节**。7nm 以下 wire RC 主导，NLDM 对长互连、高阻网络的延迟误差可达数 ps 到数十 ps（相对误差几十个百分点），且无法表达噪声与 glitch——所以先进节点改用 CCS / ECSM 这类电流源模型。注意这个误差量级远小于一个时钟周期，问题出在**建模失真**而非绝对值大小。
 
 **CCS/ECSM 怎么解决**：把 cell 建模为一组电流源，仿真器对"实际 RC 网络"做真正的 SPICE-like 仿真。代价是 library 大 10 倍，仿真慢 5 倍。
 
@@ -115,8 +117,8 @@ cell (NAND2_X1) {                                           ← 一个标准 cel
 
 | 类型 | 含义 | 例子 |
 |---|---|---|
-| `positive_unate` | 输出随输入**同方向**变化 | 反相器、缓冲器、与门 |
-| `negative_unate` | 输出随输入**反方向**变化 | 与非门、或非门 |
+| `positive_unate` | 输出随输入**同方向**变化 | 缓冲器、与门、或门 |
+| `negative_unate` | 输出随输入**反方向**变化 | 反相器、与非门、或非门 |
 | `non_unate` | **方向不定**——异或 | XOR |
 | `clear` / `preset` | 异步复位/置位 arcs | 触发器 |
 | `setup_rising` / `setup_falling` | 时序器件 setup 弧 | 触发器 |
@@ -285,7 +287,7 @@ proc check_sdc_completeness {} {
 
 ### 3.1 简单回顾：AOCV 是干什么的
 
-基础篇说过：AOCV (Advanced OCV) 把"路径越长、偏差越大"的物理事实**显式**建模。 1.0 V，5 级 buffer，每级偏差 2%，5 级累加成 ~10%。
+AOCV (Advanced OCV) 的核心是：随机偏差会随路径加深**部分抵消**，所以**单级** derate 随 depth 增大而**减小**（总偏差大致按 √N 增长，不是线性累加）。按级数线性累加成 10% 是 flat OCV 的悲观做法，恰恰是 AOCV 要去掉的那部分多余悲观。AOCV 同时还按物理距离分级，距离近的路径 derate 更小。
 
 ### 3.2 AOCV 的两个关键超参数
 
@@ -342,7 +344,7 @@ POCV 的真正威力：路径统计采样，跑全 corner 数量翻倍但更准�
 
 | 弧类型 | 触发条件 | 工具算法 | 结果 |
 |---|---|---|---|
-| **SI Hold** | victim 0→1 跳变，aggressor 同时 0→1 跳变，加重 transition | BDS (Bound-Direction Sizing) 计算最坏延长 | Hold slack **负向** |
+| **SI Hold** | victim 0→1 跳变，aggressor 同时 0→1 跳变（**同向**）→ victim 被**加速**、延迟变小 | 数据到得太快，撑不住 hold 时间 | Hold slack **负向** |
 | **SI Setup** | victim 跳变期间，aggressor **反方向**跳变，让 transition 变缓 | 缩短数据到达 → **加大 setup** | Setup slack **负向** |
 | **SI Glitch** | victim 静止，aggressor 切换 | 注入电压尖峰，可能被下级采样 | 必须保留 noise margin |
 
@@ -525,13 +527,13 @@ update_timing -full
 ### Q4：CRPR 是怎么算出来的？
 
 **答**：在 path 上识别出**有共同 inst 的部分**，把同一 PVT 下的 delay 偏差在 path 中抵消。
-**理解**：CRPR = 时钟和数据路径上**共享 buffer/cell 的共通偏差**。
+**理解**：CRPR 只作用于 **launch 时钟路径与 capture 时钟路径的公共段**（Clock Reconvergence Pessimism Removal），数据路径不参与。公共段上因 late/early 双算而多扣的悲观量被加回 slack，公共段越长可扣回的越多。
 **例子**：
 ```
-clock path：buf1 -> buf2 -> FF1/CK  
-data path：buf1 -> buf3 -> FF1/D
+launch  clock：CLKM -> buf1 -> buf2 -> FF1/CK
+capture clock：CLKM -> buf1 -> buf4 -> FF2/CK
 ```
-`buf1` 是共享的，它的偏差在 setup/hold slack 中抵消。**正是 CPPR 起作用的依据**。
+`buf1` 及 CLKM 到 buf1 这一段是两条时钟路径的公共段。工具在 setup 分析里对 launch 打 late、对 capture 打 early，同一段物理电路被算成两个值，这部分重复悲观就是 CRPR 要扣掉的。
 
 ### Q5：POCV 比 AOCV 准多少？
 

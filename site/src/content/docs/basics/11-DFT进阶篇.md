@@ -3,6 +3,8 @@ title: "DFT 进阶篇：从 ATPG 算法到量产测试工程"
 description: "Scan、ATPG、MBIST 的工程实践：覆盖率目标、pattern 生成流程与量产测试常见问题。"
 module: basics
 order: 10
+references:
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
 ---
 
 # DFT 进阶篇：从 ATPG 算法到量产测试工程
@@ -128,7 +130,7 @@ PODEM 的复杂度：
 
 ## 三、Tessent 与 DFT Compiler：工具对比
 
-### 3.1 Tessent（Cadence / Mentor）
+### 3.1 Tessent（Siemens EDA，原 Mentor Graphics）
 
 | 优势 | 特点 |
 |---|---|

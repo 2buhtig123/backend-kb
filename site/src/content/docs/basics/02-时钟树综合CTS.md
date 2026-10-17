@@ -3,6 +3,8 @@ title: "时钟树综合（CTS）：时钟树结构与实现流程"
 description: "时钟树综合的核心概念：Skew、Insertion Delay、Latency，平衡策略与工具实现方法。"
 module: basics
 order: 1
+references:
+  - "《数字集成电路物理设计》第 4 章 时钟树综合"
 ---
 
 # 时钟树综合（CTS）：时钟树结构与实现流程
@@ -58,10 +60,10 @@ Skew = max(Latency to any sink) - min(Latency to any sink)
 **传统思路**：把 Skew 减到最小，所有寄存器时钟同时到达。
 
 **Useful Skew 思路**：人为**让某些寄存器早一拍、另一些晚一拍**，把 Skew 当作工具来用：
-- **Setup Slack 不够**？让 Launch 寄存器晚一拍、或者 Capture 寄存器早一拍
+- **Setup Slack 不够**？让 Capture 寄存器晚到（正 skew），或者让 Launch 寄存器早到
 - **Hold Slack 不够**？反过来
 
-> **面试考点**："Useful Skew 怎么用？" → 答 "在两个寄存器之间，故意让 Capture 早一拍，把 Setup Slack 借给关键路径"。
+> **面试考点**："Useful Skew 怎么用？" → 答 "在两个寄存器之间，故意让 Capture 时钟晚到，把下游路径的 Setup Slack 借给关键路径；代价是这条路径的 Hold 会变紧，以及相邻路径的余量被挪走"。
 
 ---
 
@@ -118,7 +120,7 @@ PLL ──┬───┬───┬───
 
 布局已经完成（placement done），时钟树还没建：
 - Setup 检查不严（因为还没时钟 Skew）
-- **重点**：Hold 检查要 clean
+- **重点**：Setup / DRV / Congestion 收敛；Hold 只处理远大于预期 skew 的少数大违例，主体留到 Post-CTS / Post-Route 修
 - 所有数据路径延迟使用 placeholder clock latency
 
 ### 4.2 CTS 主体
@@ -310,7 +312,8 @@ report_clock_timing -type dant-dcc
 
 | 工具 | 厂商 | 特点 |
 |---|---|---|
-| **CCOpt** | Synopsys | ICC2 内置，与综合无缝衔接 |
+| **CCOpt-CTS** | Cadence | Innovus 内置，与 Concurrent Clock and Data 优化联动 |
+| **clock_opt / CCD** | Synopsys | ICC2 内置，与综合无缝衔接 |
 | **Innovus CTS** | GTS / Cadence | 业界广泛，UI 友好 |
 | **Tempus** | Cadence | 与 Innovus 同一生态 |
 | **Tessent** | Siemens EDA | 含 DFT-aware CTS |

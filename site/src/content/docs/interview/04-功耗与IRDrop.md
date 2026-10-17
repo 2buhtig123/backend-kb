@@ -3,6 +3,8 @@ title: "八股题库 · 04 功耗与 IR Drop"
 description: "功耗与 IR Drop 专题：动态/静态功耗构成、功耗估算方法、IR Drop 分析与修复。"
 module: interview
 order: 3
+references:
+  - "《数字集成电路物理设计》第 7 章 功耗分析"
 ---
 
 # 八股题库 · 04 功耗与 IR Drop
@@ -58,7 +60,7 @@ f = 频率
 
 **定义**：高电流密度下，金属走线中的金属原子被电子"撞"走，导致走线断裂或短路。
 
-**公式**：`J = I / W × t`（电流密度，mA/μm²）
+**公式**：`J = I / (W × t)`（电流密度，mA/μm²，t 为该层金属厚度）。foundry 规格常直接给「单位宽度电流」上限（mA/μm），此时不再除 t，注意单位对应
 
 **经验阈值**：
 
@@ -220,7 +222,7 @@ Decap Area = (Peak_Current × Δt) / (ΔV × C_per_Unit)
 
 **加分点**：
 - 提到 "Power Compiler / Genus 自动识别寄存器组插入 gating"
-- 提到 "Clock Gating 不能消除 clock tree 的功耗（clock 一直在 toggle）"
+- 提到 "Clock Gating 能省掉门控点**下游**时钟树与该组 FF 的时钟功耗——ICG 关断后下游整棵子树不再翻转；但 ICG **上游**那段时钟网络仍在 toggle，要彻底消除得靠 Power Gating"
 - 提到 "Power Gating 才是真正关掉 clock 树"
 
 ---

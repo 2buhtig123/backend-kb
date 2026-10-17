@@ -3,6 +3,8 @@ title: "Tcl 实战：后端工程师必备的工程脚本手册"
 description: "后端工程师 Tcl 脚本实战：常用语法、设计加载模板、报告解析与自动化流程搭建。"
 module: basics
 order: 11
+references:
+  - "各 EDA 工具官方 User Guide（Innovus / ICC2 / PrimeTime）"
 ---
 
 # Tcl 实战：后端工程师必备的工程脚本手册

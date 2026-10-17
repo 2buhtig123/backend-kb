@@ -3,6 +3,8 @@ title: "SRAM / Macro 集成：Floorplan 阶段的硬核决策"
 description: "Memory 与硬核 IP 在 Floorplan 阶段的摆放原则、halo 与 routing blockage 设置、出 pin 层与通道设计、电源与时钟处理，以及 Innovus 中的实操命令与检查清单。"
 module: basics
 order: 14
+references:
+  - "《数字集成电路物理设计》第 3 章 布图规划和布局"
 ---
 
 # SRAM / Macro 集成：Floorplan 阶段的硬核决策
@@ -185,7 +187,7 @@ Memory 集成时钟上有几个特殊点：
 
 ```tcl
 # 把 SRAM 的时钟脚设为叶子节点，工具不再往其内部平衡
-set_ccopt_property -pin sram_inst/CLK -sink_type auto
+set_ccopt_property -pin sram_inst/CLK -sink_type stop
 # 若 SRAM 被展开出现内部节点，则显式排除
 set_ccopt_property -pin sram_inst/CLK -through_type exclude
 ```

@@ -14,6 +14,8 @@ const docs = defineCollection({
     updatedDate: z.coerce.date().optional(),
     module: z.enum(['basics', 'interview', 'career', 'autumn-recruit', 'social-recruit', 'internship', 'tools']),
     order: z.number().default(99),
+    // 参考依据：本篇内容对应哪本参考书的哪一章，供读者交叉核对
+    references: z.array(z.string()).optional(),
   }),
 });
 

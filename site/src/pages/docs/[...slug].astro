@@ -130,6 +130,24 @@ const MODULE_NAMES: Record<string, string> = {
         </span>
       )}
     </div>
+    {
+      doc.data.references && doc.data.references.length > 0 && (
+        <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <span class="font-medium text-slate-700 dark:text-slate-300">参考依据</span>
+          <ul class="mt-1.5 space-y-1 text-slate-600 dark:text-slate-400">
+            {doc.data.references.map((r: string) => (
+              <li class="flex gap-2">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"></path>
+                </svg>
+                <span>{r}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
   </header>
 
   <!-- 正文 -->

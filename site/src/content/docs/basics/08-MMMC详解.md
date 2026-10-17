@@ -3,6 +3,8 @@ title: "MMMC（Multi-Mode Multi-Corner）：先进工艺调度核心"
 description: "多模式多角分析：场景组合方法、view 定义、MMMC 在 Innovus 与 PrimeTime 中的配置实践。"
 module: basics
 order: 7
+references:
+  - "《数字集成电路物理设计》第 6 章 静态时序分析"
 ---
 
 # MMMC（Multi-Mode Multi-Corner）：先进工艺调度核心
@@ -86,7 +88,7 @@ Temperature (温度漂移)
 |---|---|---|
 | **function** | 正常功能 | 全约束，全路径 |
 | **scan** | DFT 测试 | 把 scan enable=1，专用 SDC |
-| **shift** | capture-only（不用 ATPG）| 只算 capture 路径 |
+| **shift** | 慢时钟把 pattern 移入/移出扫描链 | 主要约束 shift 路径的 hold |
 | **low_power** | UPF 模式 | 隔离 cell 关闭，部分路径断电 |
 | **power_down** | UPF 模式 | 部分 domain down |
 | **bypass_mode** | Bypass 模式 | 时钟绕过 PLL |

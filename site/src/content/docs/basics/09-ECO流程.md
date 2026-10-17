@@ -3,6 +3,8 @@ title: "ECO（Engineering Change Order）：流程与实施方法"
 description: "功能 ECO 与 Metal-Only ECO 的实施流程、spare cell 使用、网表与物理 ECO 的差异。"
 module: basics
 order: 8
+references:
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
 ---
 
 # ECO（Engineering Change Order）：流程与实施方法
@@ -79,7 +81,7 @@ order: 8
 
 | # | 策略 | 操作 | 优点 |
 |---|---|---|---|
-| 1 | **Down-size 上游 buffer 改为 High-Vt** | 把 SVT → HVT → LVT cell 提升 | 省 5ps 延迟 |
+| 1 | **Up-size 驱动 + 换低 Vt** | SVT/HVT → LVT/ULVT，加大驱动 | 减 5ps 量级延迟（代价是漏电上升） |
 | 2 | **Differ device area** | 把 NAND 改 INV，加大驱动 | 减少延迟 8ps |
 | 3 | **插 buffer 到 path** | data path 添加 BUF | 减少 net delay |
 | 4 | **Move cell** | 重新 P&R 调整 net 长度 | 直接减少路径 |
@@ -95,7 +97,8 @@ order: 8
 | # | 策略 | 操作 | 效果 |
 |---|---|---|---|
 | 1 | **插 Delay Buffer** (BUF) | 在数据路径加 buffer | 增加 50ps delay |
-| 2 | **用 LVT cell** | 降低路径上 cell 速度 | 减小延 5ps |
+| 2 | **换高 Vt / Down-size 驱动** | LVT/SVT → HVT，或减小驱动 | 增 5ps 量级延迟 |
+| 3 | 数据路径插 buffer、加长绕线 | 直接增加延迟 | 按需要的 Δ 定量插入 |
 | 3 | **加 net 长度** | 重新路由加长 wire | 增大延迟 |
 | 4 | **size down 上游 driver** | 把 INV X2 改 INV X1 | 减缓 transition |
 | 5 | **插 level shifter** | 不一定合适，看 domain | 看情况 |
@@ -154,7 +157,9 @@ if {[report_timing -delay max -path full -max_paths 100] == 0} {
 T_setup_slack = T_capture_clk + T_period - T_launch_clk - T_data
 
 useful skew 修复：
-- 让 T_capture_clk 提前 → setup slack +
+- 让 T_capture_clk **延后**（在 capture FF 的时钟路径加 buffer）→ setup slack +
+- 或让 T_launch_clk **提前**（减 buffer / 加大驱动）→ setup slack +
+- 反过来（capture 提前、launch 延后）→ hold slack +
 - 调整 launch FF 的 buffer cell → launch_clock 提前
 ```
 
@@ -164,7 +169,7 @@ useful skew 修复：
 set launch_ff [find_launch_dff_of_violation $vio]
 set capture_ff [find_capture_dff_of_violation $vio]
 
-# 2. 在 launch FF 的 clock path 加缓冲（让 launch 提前）
+# 2. 在 capture FF 的 clock path 加缓冲（让 capture 延后）
 set clock_buffer [get_free_buf_near $launch_ff]
 place_cell $clock_buffer -near $launch_ff
 

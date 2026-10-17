@@ -3,6 +3,8 @@ title: "八股题库 · 06 可测试性设计 DFT（Design for Test）"
 description: "DFT 面试专题：Scan 原理、ATPG 算法、MBIST、OCC 与覆盖率指标。"
 module: interview
 order: 5
+references:
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
 ---
 
 # 八股题库 · 06 可测试性设计 DFT（Design for Test）
@@ -206,7 +208,7 @@ MBIST Controller ┼── Memory 2 ──┐
 
 **加分点**：
 - 提到 "MBIST 覆盖率通常 > 99%"
-- 提到 "March 算法是核心——March C- 13N、March SS 22N"
+- 提到 "March 算法是核心——March C− = 10N（w0 / r0w1 / r1w0 / r0w1 / r1w0 / r0 共 1+2+2+2+2+1）、March C+ = 14N、March SS = 22N，N 为地址数"
 - 提到 "memory repair 用 redundancy row/column"
 - 提到 "BISR（Built-In Self-Repair）配合 MBIST 自动修复"
 

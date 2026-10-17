@@ -3,6 +3,8 @@ title: "Sign-off 综述：时序、物理、功耗与可靠性"
 description: "量产前 Sign-off 全景：时序签核、物理验证、功耗完整性、可靠性检查与 tape-out 时间线。"
 module: basics
 order: 9
+references:
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
 ---
 
 # Sign-off 综述：时序、物理、功耗与可靠性
@@ -214,8 +216,8 @@ foreach corner $all_corners {
 ```
 NBTI (Negative Bias Temperature Instability)：
 - PMOS 在负偏压下老化
-- 5 年老化降低 Vth 5~10%
-- 影响：cell 变慢，hold slack 减少
+- 5 年老化使 |Vth| **升高** 5~10%（NBTI/HCI 让阈值电压绝对值变大，不是变小）
+- 影响：cell delay 增大，**主要吃掉 setup 余量**；hold 要担心的是时钟路径与数据路径老化速率不一致引入的偏差
 
 PBTI (Positive Bias Temperature Instability)：
 - NMOS 在正偏压下老化（5nm 后显著）
@@ -636,7 +638,7 @@ AI tool 的输出：
 
 ### Q9：Aging sign-off 为何必跑？
 
-**答**：老化后 hold slack 显著下降。在 chip 设计阶段评估老化，5 年后 chip 仍能工作。
+**答**：老化（NBTI/HCI）使 |Vth| 升高、cell delay 增大，首当其冲的是 **setup 余量**。hold 侧真正要看的是时钟路径与数据路径老化程度不一致带来的 skew 漂移。签核时按 5/10 年寿命跑 aging-aware 分析，把这部分余量预先留出来。
 
 ### Q10：PV 的"暗藏"违例为何难发现？
 

@@ -3,6 +3,8 @@ title: "CMOS 与数字电路基础"
 description: "MOS 管原理、反相器、组合与时序逻辑、功耗来源——后端视角的数字电路基础。"
 module: basics
 order: 2
+references:
+  - "《数字集成电路物理设计》第 2 章 物理设计建库与验证"
 ---
 
 # CMOS 与数字电路基础
