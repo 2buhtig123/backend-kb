@@ -290,6 +290,22 @@ report_clock_timing -type dant-dcc
 
 ---
 
+### Q5：Hold 应该在 Pre-CTS 修还是 Post-CTS 修？
+
+**答**：主流做法是 **Post-CTS 修，Pre-CTS 不追求 clean**。
+
+- Pre-CTS 时钟是 ideal 的（skew 恒为 0），Hold 违例反映的只是"数据路径太短"；CTS 之后真实 skew 出现，这些数字会被改写。
+- 修 Hold 只能给数据路径加延迟，加多少就吃多少 Setup 余量。Pre-CTS 修得越狠，Post-CTS 的 Setup 越难看。
+- CTS 之后 skew 已知，还能用 useful skew（让 Capture 时钟相对早到）帮 Hold，修起来既准又省。
+
+**例外情况**：
+
+- 违例量级大到 Post-CTS ECO 补不回来（远超过时钟周期能容忍的范围）
+- Scan chain 的 shift-mode Hold、部分 DFT 结构
+- 更常见的折中：Pre-CTS 设 hold uncertainty，把预期的 post-CTS skew 建模进去，工具只报超出部分的违例，只对这部分动手
+
+补充一个排查经验：如果 CTS 后 Setup 大面积变差，先看违例路径上有没有一串 Pre-CTS 阶段插进去的 delay cell。有的话先把它们撤掉再重算 Setup，很多时候 Setup 会自己回来。
+
 ## 11. 工具链
 
 | 工具 | 厂商 | 特点 |

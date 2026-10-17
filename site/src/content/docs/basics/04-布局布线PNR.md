@@ -128,7 +128,7 @@ Floorplan → Placement → CTS → Routing → Optimization
 |---|---|---|
 | **拥塞 (Congestion)** | 局部 cell 太密 | 减小局部密度 / 改 floorplan |
 | **长 net** | net 跨度过大 | 插入 buffer / 加 buffer 区 |
-| **Hold 违例** | Pre-CTS 时常见 | 已有 data path delay 不足 |
+| **Hold 违例** | Pre-CTS 报告里经常出现，但通常不在这一步全修 | 数据路径太短；留到 Post-CTS 用真实 skew 修 |
 
 ---
 
@@ -176,7 +176,7 @@ Floorplan → Placement → CTS → Routing → Optimization
 
 | 子阶段 | 说明 |
 |---|---|
-| **Pre-CTS Opt** | Setup/Hold 优化（假设 ideal clock） |
+| **Pre-CTS Opt** | 主要做 Setup / DRV / Congestion；Hold 只处理远超预期 skew 的大违例 |
 | **Post-CTS Opt** | 真实 clock，Setup 变严 |
 | **Post-Route Opt** | 全真实时序，最后一次优化 |
 | **Sign-off Opt** | PT / Tempus 驱动 ECO |
@@ -293,15 +293,16 @@ create_analysis_view \
 ### Q4：CTS 后 setup 大量违例
 
 **答**：
-- Pre-CTS 时没考虑 Hold 修复太多 → 数据路径被加长
-- CTS skew 不合理 → 调整 CTS
+- Pre-CTS 阶段把 Hold 修得太狠 → 数据路径被插满了 buffer / delay cell，这些延迟直接转成 Setup 负 slack
+- CTS skew 不合理 → 调整 CTS 的 skew / latency 目标
+- 排查方法：`report_timing` 看违例路径上有没有一串 Pre-CTS 插的 delay cell，有就先撤掉再重算
 
 ---
 
 ## 9. 实战建议
 
 1. **Floorplan 先做 80% 完美**——后期大改成本极高
-2. **Pre-CTS 必须 Hold clean**——否则后续 CTS 崩溃
+2. **Pre-CTS 不要追求 Hold clean**——Hold 留到 Post-CTS / Post-Route 用真实 skew 修；Pre-CTS 硬修是拿 Setup 余量换一个还没算准的数字
 3. **CTS 后第一个 1 ns slack 不够，立即排查**
 4. **Routing 后遇到 DRC，优先看 via 和 spacing**
 5. **Sign-off 前跑一遍完整 ECO 流程**
