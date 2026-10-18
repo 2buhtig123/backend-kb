@@ -14,7 +14,18 @@ const byModule = allDocs.reduce((acc: Record<string, any[]>, doc) => {
   return acc;
 }, {});
 
+// 精读笔记：首页主推入口
+const notes = (byModule.notes ?? []).sort((a, b) => a.data.order - b.data.order);
+
 const MODULES = [
+  {
+    slug: 'notes',
+    title: '精读笔记',
+    icon: 'notes',
+    description: '主参考书逐章浓缩，标注书页码、沿用原书小节编号，每条都能翻书核对。',
+    color: 'blue' as const,
+    count: (byModule.notes ?? []).length,
+  },
   {
     slug: 'basics',
     title: '基础知识',
@@ -115,10 +126,10 @@ const totalDocs = allDocs.length;
 
         <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
-            href="/basics"
+            href="/notes"
             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-blue-600/25 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30"
           >
-            开始学习
+            从精读笔记开始
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
@@ -141,6 +152,60 @@ const totalDocs = allDocs.length;
     </div>
   </section>
 
+  <!-- 精读笔记：主推入口 -->
+  <section class="border-b border-slate-200/80 bg-slate-50/70 py-16 dark:border-slate-800 dark:bg-slate-950/60 lg:py-20">
+    <div class="container-wide">
+      <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-medium text-blue-700 dark:border-blue-900 dark:bg-slate-900 dark:text-blue-300">
+            推荐入口
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            精读笔记：主参考书逐章浓缩
+          </h2>
+          <p class="mt-2 max-w-2xl text-slate-600 dark:text-slate-400">
+            把《数字集成电路物理设计》全书 10 章加附录逐页读完再浓缩，标注起止页码、沿用原书小节编号，
+            公式与算例照原书抄。这是全站唯一每条论断都能翻到书页核对的内容。
+          </p>
+        </div>
+        <a
+          href="/notes"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          查看全部 {notes.length} 篇
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          notes.map((doc, i) => (
+            <a
+              href={`/docs/${doc.id.replace(/\.md$/, '')}`}
+              class="card group block"
+            >
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 font-mono text-sm font-semibold tabular-nums text-slate-300 transition-colors group-hover:text-blue-500 dark:text-slate-700 dark:group-hover:text-blue-400">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div class="min-w-0">
+                  <h3 class="text-base font-semibold leading-snug text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+                    {doc.data.title}
+                  </h3>
+                  <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                    {doc.data.description}
+                  </p>
+                </div>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- 模块卡片 -->
   <section class="container-wide py-16 lg:py-20">
     <div class="mb-10 flex items-end justify-between">
@@ -149,7 +214,7 @@ const totalDocs = allDocs.length;
           内容地图
         </h2>
         <p class="mt-2 text-slate-600 dark:text-slate-400">
-          六大模块，按学习路径和招聘节点两条轴组织
+          {MODULES.length} 个模块，按学习路径和招聘节点两条轴组织
         </p>
       </div>
     </div>
