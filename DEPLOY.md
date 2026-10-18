@@ -1,125 +1,161 @@
-# 部署指南 / Deployment Guide
+# 部署与 credits 管理
 
-> 数字 IC 后端知识库 - 静态站点 v0.2
+线上地址：https://ic-backend-kb.netlify.app
 
-本目录可作为静态站点直接部署。所有产物已在 `dist/` 中，结构清晰、零依赖。
+托管在 Netlify，接的是 GitHub 自动部署：push 到 `main` → Netlify 拉代码 → 构建 → 发布。仓库里的构建配置：
 
-## 关键文件
-
-| 文件 | 用途 |
+| 项 | 值 |
 |---|---|
-| `dist/` | **可直接部署的静态站点**（19 个页面 + Pagefind 搜索索引） |
-| `deploy-ready.zip` | dist 的压缩包，460KB，可直接上传到 EdgeOne Pages / Vercel |
-| `dist.tar.gz` | 同上，Linux 习惯用 tar |
-| `.github/workflows/deploy.yml` | GitHub Pages 自动部署配置（已就绪） |
+| Base directory | `site` |
+| Build command | `npm run build`（`astro build && pagefind --site dist`） |
+| Publish directory | `site/dist` |
 
-## 路径 A:EdgeOne Pages（国内访问最快，推荐）⭐
+---
 
-EdgeOne Pages 是腾讯云的边缘函数静态托管，国内访问速度最佳，**完全免费额度**。
+## 一、Netlify credits 是什么
 
-### 步骤
+Netlify 从 2025 年 9 月起换成 credit 计费。新账号的 Free 套餐是 **300 credits/月，硬上限**，所有消耗都从这一个池里扣，不再有独立的「带宽额度」「构建分钟额度」。
 
-1. 打开 https://console.cloud.tencent.com/edgeone/pages （已连接器可直达）
-2. 点击「**创建项目**」→「**上传部署**」
-3. 上传方式选「**直接上传**」
-4. 把项目信息填好:
-   - 项目名:`backend-kb`（或自取）
-   - 上传文件:**直接拖 `deploy-ready.zip` 进网页**
+| 消耗项 | 费率 |
+|---|---|
+| **生产部署（push 到 main 触发）** | **15 credits / 次** |
+| 带宽 | 20 credits / GB |
+| Web 请求 | 2 credits / 万次 |
+| Compute（Functions 等，本站没用） | 10 credits / GB-hour |
+| Deploy Preview、分支部署、表单提交 | 0 |
+| 构建时长 | 不计费 |
 
-   或者进入「高级」→ 选择上传目录（你需要先把 zip 解压成 dist 文件夹然后上传整个 dist 文件夹）
+两点容易误解：
 
-5. 几秒钟后分配域名:`https://xxx.edgeone.app`
-6. 完成 ✅
+- **构建时长不参与计费。** 部署 30 秒和 8 分钟一个价，都是 15 credits。所以「优化构建速度」省不了钱，「减少部署次数」才省钱。
+- **只有成功的生产部署计入。** 构建失败、回滚到旧版本都不扣 credits。
 
-### 后续更新
+额度用完的后果：**全站暂停**，访客看到 Site not available，直到下个计费周期重置。Free 计划没有自动续费，也不能单独买加量包，只能升级套餐（Personal $9/月，1000 credits）。
 
-每次重新 build 后:
+### 本站实际踩过的坑
+
+2026-10-13 到 10-18 六天里推了 23 个提交，大致 15 次生产部署，`15 × 15 = 225`，正好用掉 75%。同期带宽几乎没消耗——整个 `site/dist` 只有 5.5 MB，1 GB 带宽相当于几千次页面访问。
+
+**结论：钱全花在部署次数上。**
+
+---
+
+## 二、一条铁律：改完一批只推一次
+
+同样这批内容，如果攒成 3 次发布，就是 45 credits，而不是 225。
+
+所以发布节奏是：
+
+```
+改内容 → 本地验证 → 攒够一批 → 一次性推送
+```
+
+反例（之前就是这么干的，每次 15 credits）：
+
+```
+改一篇 → 推 → 发现漏了一处 → 再推 → 又想起来要补链接 → 又推
+```
+
+---
+
+## 三、日常流程
+
+### 1. 本地改、本地看（0 credits）
+
 ```bash
 cd site
-npm run build   # 重新生成 dist
-# 重新上传 dist 到 EdgeOne Pages 后台
+npm run dev          # http://localhost:4321，热更新
 ```
 
-## 路径 B:Vercel（海外访问最快，零配置）
-
-1. 打开 https://vercel.com/new
-2. 选 "Import Project" → "Deploy" → 拖入 dist/ 文件夹
-3. 自动识别为静态站点,30 秒上线
-4. 默认域名:`https://xxx.vercel.app`
-
-**特别提醒:Vercel 会被国内网络部分屏蔽,适合海外用户访问。**
-
-## 路径 C:GitHub Pages（自动部署 + 免费二级域名）
-
-适合需要长期内容更新场景。每次 git push 后自动部署。
-
-### 第一次
+构建产物自检（发布前一定要跑）：
 
 ```bash
-# 1. 在 GitHub 创建仓库 backend-kb（不要勾 README/.gitignore/license）
-# 2. 本地关联并推送
-cd backend-kb
-git init
-git add .
-git commit -m "init: 数字 IC 后端知识库 v0.2"
-git branch -M main
-git remote add origin git@github.com:<your-name>/backend-kb.git
-git push -u origin main
-
-# 3. 在 GitHub 仓库 Settings → Pages → Source 选 "GitHub Actions"
-# 4. 等 2-3 分钟,自动构建并部署到 https://<your-name>.github.io/backend-kb
+cd site
+ASTRO_TELEMETRY_DISABLED=1 npm run build
+npm run preview      # 预览构建后的静态产物
 ```
 
-### 后续更新
+### 2. 想在线上看效果：用分支部署（0 credits）
+
+Deploy Preview 和分支部署都不计 credits，适合「让人看一眼」或者真机测试。
 
 ```bash
-cd backend-kb
-git add .
-git commit -m "content: 新增 XXX 八股 5 题"
-git push
-# 自动重新部署
+# 把当前工作推到远端分支，不碰 main
+git push origin HEAD:draft
 ```
 
-### 自定义域名
+Netlify 会生成 `https://draft--ic-backend-kb.netlify.app` 这类预览地址。首次使用需要在 Netlify 后台开一次：
 
-如果你有自己的域名,在 Settings → Pages → Custom domain 设置,然后去 Cloudflare 加 CNAME 即可。
+- **Branch deploys**：Site configuration → Build & deploy → Branches → 选 `All` 或指定分支
+- 或者走 PR：Repo 里开 Pull Request，Netlify 默认给 PR 生成 Deploy Preview
 
-## 路径 D:本地预览（不上线）
+### 3. 定稿发布（15 credits）
 
 ```bash
-cd backend-kb/site
-npm run dev
-# 打开 http://localhost:4321
+git checkout main
+git merge draft
+git push origin main     # 这一次才扣 credits
 ```
 
-## ⚠️ 上线前注意事项
+---
 
-| 项 | 说明 |
-|---|---|
-| **URL 大小写** | Astro 默认小写 URL（sta 而非 STA），SEO 友好，无需处理 |
-| **中文搜索** | Pagefind 默认无中文 stemming 但搜索仍然可用 |
-| **GitHub Pages 路径** | 如果用 `<user>.github.io/backend-kb`，所有链接前会自动加 `backend-kb` 前缀，建议用 `<user>.github.io`（独立仓库名） |
-| **CDN 缓存** | EdgeOne / Vercel 都会自动 CDN 化，更新可能有几分钟延迟 |
-| **HTTPS** | 三个平台默认 HTTPS，无需配置 |
+## 四、不触发构建的提交
 
-## 🎯 推荐组合
+只改了仓库里的文档、报告（`verify-*.md`、`review-*.md`、本文件），站点内容没动，不需要重新部署。在提交信息里加 `[skip netlify]`：
 
-- **国内访问** → EdgeOne Pages（一级域名 + 国内 CDN + 零成本）
-- **自动部署** → GitHub Pages（push 即更新）
-- **海外用户** → 同时挂 Vercel（镜像，全球加速）
-- **长期资产** → 拥有自己的域名 + Cloudflare（彻底掌控）
+```bash
+git commit -m "docs: 第 10 章核对报告留档 [skip netlify]"
+```
 
-## 验证清单
+Netlify 看到这个标记会直接跳过构建，不扣 credits。`[skip ci]` 效果相同。
 
-上线后请检查:
+---
 
-- [ ] 首页能正常访问
-- [ ] 6 个模块的列表页正常
-- [ ] 至少 3 篇文章详情页可访问
-- [ ] 顶部搜索框能用（按 `/` 或 `Ctrl+K` 试试）
-- [ ] 暗色模式切换生效
-- [ ] 移动端排版正常（手机访问）
-- [ ] sitemap.xml 可访问（SEO 用）
-- [ ] RSS 可访问（订阅器用）
+## 五、月度预算参考
 
-完成 ✅ 后，你就有了一个**可被搜索引擎索引、可被分享链接、可绑定自己域名**的数字 IC 后端求职知识库站点。
+按 300 credits 算：
+
+| 用途 | 额度 | 折算 |
+|---|---|---|
+| 生产部署 | 15 credits/次 | 20 次/月（如果全花在这上面） |
+| 带宽 | 20 credits/GB | 15 GB/月 |
+| Web 请求 | 2 credits/万次 | 150 万次/月 |
+
+实际是混着花。给这个站的建议：
+
+- **每月生产部署控制在 8-10 次以内**（120-150 credits）
+- 留 100 credits 给带宽和请求（约 5 GB 流量，够几千到一万次访问）
+- 大改版（比如批量加文章）算一次发布，不要拆成十次
+
+如果某个月要做大规模内容更新，先在本地把全部内容写完、构建验证通过，再一次性推。
+
+---
+
+## 六、额度真不够时的备选
+
+**Cloudflare Pages**：免费、带宽不限、每月 500 次构建，纯静态 Astro 站迁移成本很低——构建命令 `npm run build`，输出目录 `dist`，root 目录 `site`，其余不用改。
+
+迁移动机只有一个：当月内容更新次数多到 300 credits 撑不住。如果只是日常维护，留在 Netlify 就行。
+
+---
+
+## 七、发布前检查清单
+
+- [ ] `cd site && npm run build` 通过，没有报错
+- [ ] 首页、`/notes`、至少 3 篇文章页在 `npm run preview` 下能打开
+- [ ] 中文 slug 的链接正常（站内链接由 Astro 生成，不用手写）
+- [ ] 没有临时脚本或调试文件残留（`_*.py`、`_*.txt`）
+- [ ] `book/` 目录没进 git（`.gitignore` 已排除，308 张书页 PNG 只在本地）
+- [ ] 提交信息写清楚改了什么
+
+---
+
+## 八、历史配置备忘
+
+早期试过的路径留在这里，供以后参考：
+
+- **EdgeOne Pages**：国内访问快，但预览有时效、域名有限制，已弃用
+- **Vercel**：零配置，但国内访问不稳定
+- **GitHub Pages**：`<user>.github.io/<repo>` 形式会带路径前缀，站内绝对链接需要额外配置
+
+现在只用 Netlify + GitHub 自动部署。
