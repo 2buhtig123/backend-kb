@@ -10,6 +10,7 @@ import { getCollection } from 'astro:content';
 export async function getStaticPaths() {
   return [
     { params: { module: 'basics' } },
+    { params: { module: 'notes' } },
     { params: { module: 'interview' } },
     { params: { module: 'autumn-recruit' } },
     { params: { module: 'social-recruit' } },
@@ -26,6 +27,12 @@ const MODULE_META: Record<string, { title: string; icon: string; description: st
     title: '基础知识',
     icon: 'book',
     description: '数字后端工程师的"六件套"：CMOS、STA、CTS、PNR、PV、UPF。从入门到进阶。',
+    color: 'blue',
+  },
+  notes: {
+    title: '精读笔记',
+    icon: 'notes',
+    description: '《数字集成电路物理设计》逐章浓缩笔记：看不下去原书，就看这里。每篇标注书页码，可对照原书核对。',
     color: 'blue',
   },
   interview: {
@@ -74,6 +81,7 @@ const docs = (await getCollection('docs'))
 // 空状态文案
 const EMPTY_MESSAGE: Record<string, string> = {
   basics: '基础知识正在持续补充中，敬请期待。',
+  notes: '精读笔记按原书章节逐章更新中。',
   interview: '八股题库正在持续补充中，敬请期待。',
   career: '求职实战内容正在持续补充中。',
   'autumn-recruit': '秋招信息正在持续更新中。',
