@@ -3,8 +3,9 @@ title: "CMOS 与数字电路基础"
 description: "MOS 管原理、反相器、组合与时序逻辑、功耗来源——后端视角的数字电路基础。"
 module: basics
 order: 2
+verified: true
 references:
-  - "《数字集成电路物理设计》第 2 章 物理设计建库与验证"
+  - "《数字集成电路物理设计》第 2 章 物理设计建库与验证（p.17-55）"
 ---
 
 # CMOS 与数字电路基础
@@ -67,7 +68,7 @@ NMOS (n-type)            PMOS (p-type)
 
 - Input = 0：PMOS 导通，NMOS 截止，Output 拉到 VDD
 - Input = 1：PMOS 截止，NMOS 导通，Output 拉到 GND
-- **静态功耗 ≈ 0**（一个 MOS 永远关着）
+- **静态功耗 ≈ 0**（一个 MOS 永远关着）（《数字集成电路物理设计》p.47）
 
 ### 2.2 反相器延迟
 
@@ -86,6 +87,8 @@ NMOS (n-type)            PMOS (p-type)
 ```
 tp ≈ C_load × VDD / I_avg
 ```
+
+书中一阶 RC 模型给出的等价形式：`tp = ln2·RC = 0.69·Req·CL`（《数字集成电路物理设计》p.45）。
 
 ### 2.3 反相器链（Inverter Chain）— 驱动大负载
 
@@ -118,7 +121,7 @@ N = ln(F) / ln(e)      F = Cload/Cin
 - 输入任一 1 → 至少一个 NMOS 导通 → 拉 GND（快）
 
 **对称性**：
-- NAND 比 NOR 快（电子迁移率高于空穴）
+- NAND 比 NOR 快（电子迁移率高于空穴）（《数字集成电路物理设计》p.35）
 - 因此标准单元库里 NAND 的等效电阻比 NOR 小
 
 ### 3.2 复杂门（AOI / OAI）
@@ -150,7 +153,7 @@ P_dynamic = α · C · VDD² · f
 - α：翻转率（activity factor）
 - C：开关电容
 - VDD：供电电压
-- f：时钟频率
+- f：时钟频率（《数字集成电路物理设计》p.47）
 
 **降低方法**：
 - 降 VDD（最有效，二次方）
@@ -161,13 +164,13 @@ P_dynamic = α · C · VDD² · f
 #### (b) Short Circuit Power（短路功耗）
 - 输入 transition 时，PMOS 和 NMOS 同时导通的瞬间
 - 一般占动态功耗 10-20%
-- 难以降低，主要靠减小输入 transition
+- 难以降低，主要靠减小输入 transition（《数字集成电路物理设计》p.47）
 
 #### (c) Static Power（静态功耗）
 ```
 P_static = VDD · I_leakage
 ```
-- 漏电流 = 亚阈值漏电 + 栅氧漏电 + 反偏 PN 结漏电
+- 漏电流 = 亚阈值漏电 + 栅氧漏电 + 反偏 PN 结漏电（《数字集成电路物理设计》p.47）
 - **先进工艺下静态功耗占比越来越大**（3nm 时可达 30-50%）
 - 降低方法**：Power Gating、MTCMOS、阈值调整**
 
@@ -235,7 +238,7 @@ Input ──┬──[TG]──┬── Output
 ```
 
 - 电平敏感，使能有效时输入直通
-- 难以做 STA（很多 EDA 工具支持有限）
+- 难以做 STA（很多 EDA 工具支持有限）（《数字集成电路物理设计》p.35-37）
 
 ### 7.2 DFF（边沿敏感）
 
@@ -244,7 +247,7 @@ Master Latch (active when CLK=0) ──→ Slave Latch (active when CLK=1) ─�
 ```
 
 - 上升沿采样
-- STA 标准 cell
+- STA 标准 cell（《数字集成电路物理设计》p.35-37）
 
 ### 7.3 时序参数
 
@@ -254,6 +257,8 @@ Master Latch (active when CLK=0) ──→ Slave Latch (active when CLK=1) ─�
 | **Tsetup** | 建立时间 | 20-50 ps |
 | **Thold** | 保持时间 | 10-30 ps |
 | **Tckq_min** | 最小 C2Q 延迟 | 影响 Hold |
+
+（《数字集成电路物理设计》p.50）
 
 ---
 
@@ -297,7 +302,7 @@ Aggressor (攻击者)         Victim (受害者)
             耦合电容
 ```
 
-当 Aggressor 翻转时，通过耦合电容 Cc，在 Victim 上感应电压毛刺。
+当 Aggressor 翻转时，通过耦合电容 Cc，在 Victim 上感应电压毛刺。（《数字集成电路物理设计》p.48）
 
 ### 9.2 影响
 
@@ -320,7 +325,7 @@ Aggressor (攻击者)         Victim (受害者)
 标准单元库由 foundry 提供：
 - 每个 cell 有多个 corner 的 lib 文件
 - `ss`, `ff`, `tt` 等
-- 不同温度、电压
+- 不同温度、电压（《数字集成电路物理设计》p.49）
 
 ### 10.2 工艺角（Process Corner）
 
@@ -331,6 +336,8 @@ Aggressor (攻击者)         Victim (受害者)
 | **SS** | Slow | Slow | Setup 最差 |
 | **SF** | Slow | Fast | Hold 检查 |
 | **FS** | Fast | Slow | Setup 检查 |
+
+书成书年代的库采用 BC（best case, fast）、TC（typical, normal）、WC（worst case, slow）三种 PTV 条件，以 0.18µm 工艺为例：BC 1.98V/0°C，TC 1.80V/25°C，WC 1.62V/125°C（《数字集成电路物理设计》p.49-50）。
 
 ---
 

@@ -263,7 +263,7 @@ MBIST Controller ┼── Memory 2 ──┐
 | **Scan Chain 顺序** | 物理位置近的 FF 应在同一 chain | DFT Compiler 自动优化 |
 | **Scan Chain 时序** | 长 chain 信号完整性 | DFT Compiler + Innovus |
 | **Clock Skew** | Shift mode 对 skew 敏感 | CTS 阶段注意 |
-| **Power 约束** | Shift 模式同时 toggle 多，IR drop 严重 | DFT power-aware |
+| **Power 约束** | Shift 模式同时 toggle 多，IR drop 严重（《数字集成电路物理设计》p.205-206 将测试功耗列为额外负担） | DFT power-aware |
 | **BIST 逻辑位置** | 放在 always-on 区域或专用 domain | Floorplan 规划 |
 | **Scan I/O 引脚** | 占用顶层 pin | Top-level floorplan |
 | **Hold 修复** | Shift mode 下 hold 违例多 | 单独跑 shift hold fix |

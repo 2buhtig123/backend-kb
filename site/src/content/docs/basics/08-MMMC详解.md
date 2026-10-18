@@ -5,6 +5,8 @@ module: basics
 order: 7
 references:
   - "《数字集成电路物理设计》第 6 章 静态时序分析"
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核（p.220-234）"
+verified: true
 ---
 
 # MMMC（Multi-Mode Multi-Corner）：先进工艺调度核心
@@ -52,6 +54,8 @@ Corner = 物理环境改变 → cell delay 改变 → slack 改变
 
 关键认知：**Mode 和 Corner 是正交的维度，可以叉乘跑**。
 
+书中把这两个维度落到了具体结构上：模式是功能、扫描、自检 BIST、DVFS 这类约束场景，端角则分半导体器件条件（不同 PVT 的时序库）与 RC 条件（参数提取与降额）两部分；两者组合成一个视图（view），即「单个延迟端角 + 单个约束模式」（p.222）。
+
 ---
 
 ## 二、Corner 与 Mode：3 个轴 × 3 个状态
@@ -78,7 +82,7 @@ Temperature (温度漂移)
 ├── -40 °C (低温)           →  cell delay 最小 →  worst hold
 ├── 25 °C (室温)            →  reference
 ├── 85 °C (商用高温)        →  cell delay 较大
-├── 125 °C (军工高温)       →  worst setup
+├── 125 °C (汽车级/军工高温) →  worst setup
 └── ...及动态温度翻转 →  hot-spot 检查
 ```
 
@@ -88,11 +92,15 @@ Temperature (温度漂移)
 |---|---|---|
 | **function** | 正常功能 | 全约束，全路径 |
 | **scan** | DFT 测试 | 把 scan enable=1，专用 SDC |
+| **bist** | 内建自检 | 自检专用约束与路径 |
+| **dvfs** | 动态电压频率调节 | 按工作点给出多组时钟频率与电压 |
 | **shift** | 慢时钟把 pattern 移入/移出扫描链 | 主要约束 shift 路径的 hold |
 | **low_power** | UPF 模式 | 隔离 cell 关闭，部分路径断电 |
 | **power_down** | UPF 模式 | 部分 domain down |
 | **bypass_mode** | Bypass 模式 | 时钟绕过 PLL |
 | **sleep_mode** | Chip sleep | 时钟 gating |
+
+书中把最主要的模式定为功能模式，即标准时序约束模式，另外列出扫描、自检 BIST 与 DVFS 三类（p.222）。
 
 ### 2.3 真实工程"必备" corner 数目
 
@@ -105,6 +113,8 @@ Temperature (温度漂移)
 | 5nm | 6 | 10 | **60** |
 | 3nm | 6 | 12 | **72** |
 
+书中的组合规模按三轴相乘：3 种模式的时序约束 × 3 种时序库端角 × 4 种 RC 端角 = 36 种组合，再用视图逐组观测，删掉对时序影响小的视图以减少运行次数（p.224）。
+
 ---
 
 ## 三、Corner 数量为何爆炸
@@ -113,9 +123,9 @@ Temperature (温度漂移)
 
 | 来源 | 例子 | 数量爆炸 |
 |---|---|---|
-| 工艺极限 | ss / sf / fs | 4 个基本 PVT |
+| 工艺极限 | ss / tt / ff | 书中按 worst / typical / best 三种 PVT 建库（p.220） |
 | 老化 | NBTI (PMOS 慢化) + PBTI (NMOS 慢化) + HCI | 每个转角再加一个 aged 版本 |
-| 寄生偏差 | Cmax/Cmin + Rmax/Rmin 两两组合 | 1×5 组合 |
+| 寄生偏差 | Cmax/Cmin + Rmax/Rmin 两两组合 | 书中列 4 种 RC 端角：cbest / cworst / rcbest / rcworst（p.224） |
 | IR Drop | 4 种 IR 实例（chip 边缘 vs 中心）| 4 × corner |
 | Voltage Bump | 不同测试点电压（Vmin + 老化保留）| 多 2-3 corner |
 
@@ -153,6 +163,8 @@ Scan Sign-off 必备 4 corner：
 3. scan_wc_setup_lowV  =  ss_0p83_125c
 4. scan_bc_hold_lowV   =  ff_0p83_-40c
 ```
+
+书中对库与路径的搭配写得很明确：setup 用最大时序库配最晚到达的数据路径、最小时序库配最早到达的时钟；hold 相反，用最小时序库配最早到达的数据路径、最大时序库配最晚到达的时钟（p.224）。
 
 ### 4.2 7 个 Corner 缩减技巧
 
@@ -210,19 +222,23 @@ set all_libs_typ "
   my_tech/stdcell/my_tech_tt_25c.lib
 "
 
-# ---------- 2. 创建分析视图 ----------
-set_analysis_view -name func_wc_setup -constraint {func.sdc} -delay_corner {ss_wc_corner}
-set_analysis_view -name func_wc_hold  -constraint {func.sdc} -delay_corner {ff_bc_corner}
-set_analysis_view -name func_wc_setup_lowV -constraint {func.sdc_lowV.sdc} -delay_corner {ss_wc_lowV}
-set_analysis_view -name scan_wc_setup -constraint {scan.sdc} -delay_corner {ss_wc_corner}
-set_analysis_view -name scan_wc_hold  -constraint {scan.sdc} -delay_corner {ff_bc_corner}
+# ---------- 2. 定义分析视图 ----------
+# 视图由三项组成：视图名、约束模式、延时端角（p.222）
+create_analysis_view -name func_wc_setup -constraint_mode func_mode -delay_corner dc_wc
+create_analysis_view -name func_wc_hold  -constraint_mode func_mode -delay_corner dc_bc
+create_analysis_view -name func_wc_setup_lowV -constraint_mode func_lowV_mode -delay_corner dc_wc_lowV
+create_analysis_view -name scan_wc_setup -constraint_mode scan_mode -delay_corner dc_wc
+create_analysis_view -name scan_wc_hold  -constraint_mode scan_mode -delay_corner dc_bc
 # ... 共 N 个 view
 
-# ---------- 3. 把这些 view 加入 SetActiveList ----------
+# ---------- 3. 指定参与 setup / hold 分析的活跃视图 ----------
+set_analysis_view -setup {func_wc_setup scan_wc_setup} -hold {func_wc_hold scan_wc_hold}
 set_analysis_mode -aocv true
 set_analysis_mode -cppr both
 set_analysis_mode -si_enable true
 ```
+
+定义视图用 `create_analysis_view`，`set_analysis_view` 只负责指定哪几个视图进入 setup 与 hold 列表，两者不能混用（p.223、p.227）。
 
 ### 5.2 Constraint 与 Corner 分离原则
 
@@ -235,6 +251,8 @@ set_analysis_mode -si_enable true
 - 把所有 lib 锁在一个 SDC 里
 - 把 SDC 文件按工艺复制多份
 - 让 SDC 跑 N 个 process 而不只是 mode
+
+这就是书中「视图 = 单个延时端角 + 单个约束模式」的含义：约束只随模式变，延时只随端角变（p.222）。
 
 ---
 
@@ -250,15 +268,15 @@ set_analysis_mode -si_enable true
 # 1. 指定所有 lib
 set_db lib_search_path ./libs
 
-# 加载库
+# 加载库；属性值直接给列表，外面不再套大括号（p.225 例 10-6）
 create_library_set -name wc_lib \
-  -timing { [list wc_lib/stdcell_ss.lib wc_lib/sram_ss.lib wc_lib/io_ss.lib] } \
-  -si    { [list wc_lib/stdcell_ss.siLib] } \
-  -power { [list wc_lib/stdcell_ss.lib] }
+  -timing [list wc_lib/stdcell_ss.lib wc_lib/sram_ss.lib wc_lib/io_ss.lib] \
+  -si     [list wc_lib/stdcell_ss.siLib] \
+  -power  [list wc_lib/stdcell_ss.lib]
 
 create_library_set -name bc_lib \
-  -timing { [list bc_lib/stdcell_ff.lib bc_lib/sram_ff.lib] } \
-  -si    { [list bc_lib/stdcell_ff.siLib] }
+  -timing [list bc_lib/stdcell_ff.lib bc_lib/sram_ff.lib] \
+  -si     [list bc_lib/stdcell_ff.siLib]
 
 # 2. 创建 Opcond (Operating Conditions)
 create_opcond -name wc_opc -process ss -voltage 0.88 -temperature 125
@@ -299,13 +317,28 @@ report_analysis_views
 # 必须是和 Innovus 一致的 4 个 view，否则 STA 会出现漏报
 ```
 
+### 6.3 书中的三视图实例
+
+书中 CTS 阶段的实例只建三个延时端角（wc / tc / bc）、一个约束模式，再用 `set_analysis_view` 指定 setup 与 hold 各取哪些视图（p.227 例 10-8）：
+
+```tcl
+create_analysis_view -name view1 -delay_corner dc_wc -constraint_mode func_mode
+create_analysis_view -name view2 -delay_corner dc_tc -constraint_mode func_mode
+create_analysis_view -name view3 -delay_corner dc_bc -constraint_mode func_mode
+
+# view1 成为默认视图
+set_analysis_view -setup {view1 view2} -hold {view3}
+```
+
+view2（典型端角）只进 setup 列表，hold 只留 view3（最快端角）；CTS 会对所有视图同时压 skew（p.227）。书中把 MMMC 定位在时钟树综合阶段：先建 MMMC 环境，再在 CTS 前后做时序优化与 SI 收敛（p.225）。
+
 ---
 
 ## 七、MMMC 八股问题清单
 
 ### Q1：MMMC 的 M 和 C 各代表什么？为什么不能合并？
 
-**答**：**M = 工作模式**（func/scan/bypass），改变逻辑路径；**C = 工艺环境**（PVT），改变器件速度。
+**答**：**M = 工作模式**（func/scan/bypass），改变逻辑路径；**C = 工艺环境**（PVT 时序库 + RC 端角），同时改变器件速度与连线延迟（p.220、p.222）。
 两者不能合并，因为 SDC **直接绑定到 M**，lib/SPEF 绑定到 C。合并会令一台符号有不同含义。
 
 ### Q2：为什么"功能"和"scan" 必须分开 SDC？

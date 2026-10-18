@@ -3,8 +3,9 @@ title: "低功耗设计（UPF / Power Intent）：电源域与功耗控制"
 description: "UPF 电源意图描述：电源域、隔离、电平转换、电源开关与 retention，以及动态/静态功耗构成。"
 module: basics
 order: 5
+verified: true
 references:
-  - "《数字集成电路物理设计》第 9 章 低功耗设计技术与物理实施"
+  - "《数字集成电路物理设计》第 9 章 低功耗设计技术与物理实施（p.201-219）"
 ---
 
 # 低功耗设计（UPF / Power Intent）：电源域与功耗控制
@@ -12,7 +13,7 @@ references:
 > **为什么需要低功耗设计？**
 > - 待机时间决定用户体验
 > - 散热决定性能上限
-> - **先进工艺（28nm 以下）静态功耗占比 30-50%**，必须 Power Gating
+> - **90nm 工艺节点后，泄漏功耗逐渐赶上并超越动态功耗**，必须 Power Gating（《数字集成电路物理设计》p.202）
 > - 面试中、低、高公司都爱问 UPF
 
 ---
@@ -28,6 +29,8 @@ P_total = P_dynamic + P_short + P_static
 - **P_dynamic = α · C · VDD² · f**（动态，运行时）
 - **P_short**：短路功耗（transition 期间）
 - **P_static = VDD · I_leakage**（漏电）
+
+书中式 9-1 记为 P_total = P_SW + P_SC + P_leakage（《数字集成电路物理设计》p.202）。
 
 ### 1.2 低功耗策略总览
 
@@ -60,6 +63,8 @@ RTL + SDC + UPF → DC / Genus / Innovus 产生低功耗网表
 | **Isolation** | 隔离单元（Power Gating 后保护输出） |
 | **Retention** | 状态保持（Power Gating 时保留 FF 状态） |
 | **Level Shifter** | 电平转换（不同电压域之间） |
+
+上表各单元在书中的定位与放置位置见《数字集成电路物理设计》p.210-213。
 
 ### 2.3 UPF 示例（简化）
 
@@ -115,13 +120,15 @@ OFF 状态：VDD_CORE ──[SWITCH]─/─→ CORE（漏电 ≈ 0）
 - 也可以是 **Footer NMOS**（靠近 GND）
 - 控制信号来自 always-on 域（避免同时被关）
 
+书中的门控方式分精细结构（标准单元内接地开关）与粗制结构（整行电源轨开关单元）（《数字集成电路物理设计》p.214）。
+
 ### 3.3 Power Switch 设计考虑
 
 | 维度 | 考量 |
 |---|---|
 | **驱动能力** | 决定 wakeup 时间 |
 | **电流容量** | 决定最大支持模块大小 |
-| **Rush current** | 多个 switch 同时开会产生浪涌 |
+| **Rush current** | 多个 switch 同时开会产生浪涌（书中用缓冲链逐行开关，p.214） |
 | **Wakeup time** | 从关到开所需时间 |
 
 ### 3.4 唤醒序列（Wakeup Sequence）
@@ -129,10 +136,14 @@ OFF 状态：VDD_CORE ──[SWITCH]─/─→ CORE（漏电 ≈ 0）
 ```
 1. Power Switch 开启
 2. 等 VDD_CORE 稳定（去耦电容充电）
-3. 释放 Isolation（让输出可被驱动）
-4. 释放 Retention Restore（恢复 FF 状态）
+3. Retention Restore（恢复 FF 状态）
+4. 释放 Isolation（让输出可被驱动）
 5. 模块正常工作
 ```
+
+顺序上是先恢复状态再放开隔离：如果先释放 isolation，被恢复域的输出在状态恢复完成前是不定值，会往接收域传播 X 态。
+
+关于顺序的一点说明：本书（p.212、p.214）描述的是 CPF 时代的做法，隔离单元的控制端直接接 sleep 信号，与电源开关共用同一个控制信号，sleep 有效时隔离即生效，书中并没有给出「save / isolation / 关断」这样的分步时序，也没有 restore 与释放 isolation 的先后规定。上面这套分步序列来自现代 UPF 流程的工程实践，不是书中内容，实际项目以你所用 flow 的要求为准。
 
 ---
 
@@ -144,7 +155,7 @@ OFF 状态：VDD_CORE ──[SWITCH]─/─→ CORE（漏电 ≈ 0）
 - 接收端可能读到一个不确定值
 - 引起接收域的短路电流
 
-**Isolation 单元**保护接收域：当发送域被关时，把输出钳到固定值（0 或 1）。
+**Isolation 单元**保护接收域：当发送域被关时，把输出钳到固定值（0 或 1）（《数字集成电路物理设计》p.212）。
 
 ```
 POWER DOMAIN A (已关闭)        POWER DOMAIN B (在运行)
@@ -174,7 +185,7 @@ POWER DOMAIN A (已关闭)        POWER DOMAIN B (在运行)
 t=0       ISO 有效       t=开关稳定
 ```
 
-> ISO 必须在 Power Switch 关闭**之前**有效。
+> ISO 必须在 Power Switch 关闭**之前**有效。隔离单元放在关断域的输出端口、电压域的边界处（《数字集成电路物理设计》p.212）。
 
 ---
 
@@ -184,19 +195,21 @@ t=0       ISO 有效       t=开关稳定
 
 Power Gating 后，模块内 FF 状态**全部丢失**。如果需要保留：
 - 用 **Retention FF**（专用 cell）
-- Power 关后，仍保持状态（用 always-on 电源）
+- Power 关后，仍保持状态（寄存器的从触发器接常通低供电电压）
 
 ### 5.2 Retention FF 原理
 
 ```
-Retained FF = 主 FF + 影子 FF + 电源开关
-            ↑        ↑         ↑
-        主电源    always-on    控制保存/恢复
+Retained FF = 主 FF（接可关断电压）+ 从 FF（接常通低供电电压）
+                  ↑                        ↑
+          精细结构电压门控制          断电后数据保存在从 FF
 ```
+
+书中称为状态保持电源门控 SRPG，在传统主从寄存器上改进而来（《数字集成电路物理设计》p.214）。
 
 ### 5.3 Retention 信号
 
-- **Save Signal**：保存当前状态到影子 FF
+- **Save Signal**：保存当前状态到从触发器
 - **Restore Signal**：恢复状态到主 FF
 
 ### 5.4 Retention vs Isolation 选择
@@ -214,7 +227,7 @@ Retained FF = 主 FF + 影子 FF + 电源开关
 
 ### 6.1 什么是多电压？
 
-不同模块用**不同电压**，按性能需求供电
+不同模块用**不同电压**，按性能需求供电（《数字集成电路物理设计》p.210）
 - CPU 满载：1.0 V
 - CPU 待机：0.7 V
 - Always-on：0.85 V
@@ -227,14 +240,16 @@ P_dynamic = C · V² · f
 
 降 VDD + 降 f = **立方级省功耗**
 
+书中算例：电压降为 0.5 倍、频率随之降为 0.5 倍时，完成同一任务的能耗降为原来的 1/4，节省 75%（《数字集成电路物理设计》p.215-216）。
+
 ### 6.3 跨电压域问题
 
 - 不同电压域的信号**电平不同**
 - 直接连接会破坏电平、引起短路
 
-**Level Shifter（电平转换器）**解决问题：
-- 低 → 高：高电平域识别低电平域信号
-- 高 → 低：一般不需要（低电平域可读高电平）
+**Level Shifter（电平转换器）**解决问题（《数字集成电路物理设计》p.211）：
+- 低 → 高：把低电压域的信号抬到高电压域可识别的电平
+- 高 → 低：同样需要，书中电平转换单元按 from_PD / to_PD 成对给出（p.213）
 
 ---
 
@@ -259,7 +274,7 @@ PLL ──→ ICG ──→ Registers
 ```
 
 - 内部 latch + AND 门
-- 避免毛刺
+- 避免毛刺（《数字集成电路物理设计》p.209，图 9-12）
 
 ---
 
@@ -279,7 +294,7 @@ PLL ──→ ICG ──→ Registers
 - **非关键路径**：用 HVT（漏电优先）
 - **平衡**：SVT
 
-工具自动做 Vt swap（多数 PNR 工具支持）。
+工具自动做 Vt swap（书中由综合工具按设定的泄漏功耗目标完成，p.208；多数 PNR 工具也支持）。
 
 ---
 
@@ -296,6 +311,8 @@ PLL ──→ ICG ──→ Registers
 - SoC 中的**深睡眠**模式
 - 大块 IP 的 Power Gating
 
+（《数字集成电路物理设计》p.202、p.214）
+
 ---
 
 ## 10. UPF Flow 实例
@@ -305,7 +322,7 @@ RTL + SDC + UPF
       ↓
  DC / Genus（综合）
       ↓
- PNR（ICC2 / Innovative）
+ PNR（ICC2 / Innovus）
       - power domain aware
       - IR drop aware
       - timing closure
@@ -324,7 +341,7 @@ RTL + SDC + UPF
 | 工具 | UPF 支持 | 特点 |
 |---|---|---|
 | **DC / Genus** | 支持 | 综合阶段插入 power switch / isolation / retention |
-| **ICC2 / Innovative** | 支持 | PNR 阶段按 UPF 做特殊布局布线 |
+| **ICC2 / Innovus** | 支持 | PNR 阶段按 UPF 做特殊布局布线 |
 | **PrimeTime** | 支持 | UPF-aware STA |
 | **Calibre** | 支持 | UPF-aware LVS |
 
@@ -335,13 +352,15 @@ RTL + SDC + UPF
 ### Q1：Power Domain 切换顺序？
 
 **答**：
-1. Retention save（先把 FF 状态存进影子寄存器）
+1. Retention save（先把 FF 状态存进从触发器）
 2. Isolation 有效（钳住输出，保护接收域）
 3. Power Switch 关断（断电）
 4. 等待电源泄放到 0
 5. 模块关闭
 
 注意顺序不能反：isolation 必须在断电**之前**生效，retention save 也必须在断电之前完成——否则关断瞬间输出浮空会往接收域灌电流，状态也随电源一起丢了。
+
+这套顺序是现代 UPF 流程的工程实践，书中没有给出分步时序（详见 3.4 的说明）。书中（p.212）隔离单元的控制端直接接 sleep 信号，与电源开关共用一个控制信号。
 
 反向：
 1. Power Switch 开启
@@ -354,7 +373,7 @@ RTL + SDC + UPF
 
 **答**：
 - 电源 wakeup 时电流冲击（rush current）
-- 增加去耦电容（Decap Cell）
+- 增加去耦电容（Decap Cell，书 p.211 提醒需在电路性能与功耗间折中）
 - 错峰开启 power switch
 - 加宽 power routing 地网
 
@@ -365,11 +384,11 @@ RTL + SDC + UPF
 |---|---|---|
 | 用途 | 保护关断域的输出 | 转换不同电压的电平 |
 | 时机 | Power off 时 | 正常工作 |
-| 数量 | 通常 1 个 | 跨电压域信号 |
+| 数量 | 每个关断域输出端口 1 个 | 每根跨电压域信号 1 个 |
 
 ### Q4：Retention 一定能省功耗吗？
 
-**答**：Retention 比 Isolation **多一个影子 FF**，本身多 30-50% 漏电。
+**答**：Retention 比 Isolation **多一组常通供电的从触发器**，本身多 30-50% 漏电。
 - 只在状态很重要时用 Retention
 - 否则用 Isolation 即可
 

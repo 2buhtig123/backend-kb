@@ -4,7 +4,8 @@ description: "量产前 Sign-off 全景：时序签核、物理验证、功耗�
 module: basics
 order: 9
 references:
-  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核（p.220-234）"
+verified: true
 ---
 
 # Sign-off 综述：时序、物理、功耗与可靠性
@@ -36,6 +37,8 @@ references:
 ## 一、Sign-off 的 5 大检查与 4 个时间节点
 
 ### 1.1 五大 Sign-off 检查清单
+
+书中的签核范围只有三项任务：时序验证、物理验证与逻辑功能验证（p.220）。IR/EM 归在功耗分析与电路检查之下，DFM 与光刻检查归在物理验证之下，逻辑等效验证单列（p.228-231）。下表按工程实践拆成五项，逻辑等效验证与本表并列，签核时不可缺。
 
 | # | 检查项 | 工具 | 通过标准 | 失败后果 |
 |---|---|---|---|---|
@@ -111,6 +114,9 @@ DFM 依赖 → Final routing
 □ DFM 报告（自定 criteria）
 □ GDSII（二进制）
 □ GDSII checksum 文件
+□ DRC/LVS 规则文件（runset，随版图一并提交）（p.232）
+□ 封装导线表：裸片管脚坐标、裸片与封装管脚对应关系、封装管脚名称（p.232）
+□ IP 合并时的 SPICE 网表（p.232）
 □ Timing verification letter（签发）
 □ IR verification letter（签发）
 □ LVS signoff letter（签发）
@@ -184,10 +190,9 @@ proc run_signoff { corner mode } {
   # 加载对应 SDC
   if {$mode eq "func"} { source $top_sdc_func } else { source $top_sdc_scan }
     
-  # 读 netlist + lib + SPEF + SDF
+  # 读 netlist + lib + SPEF；SDF 是给门级动态仿真反标用的，STA 不读（p.220）
   read_verilog  $top_netlist
   read_parasitics ./spef/$corner.spef
-  read_sdf       ./sdf/$corner.sdf
     
   update_timing -full
     
@@ -255,6 +260,8 @@ report_noise -above -below -hier > noise.rpt
 # 修复流程：report → 检查 SI 违例 → 加 buffer / NDR / shielding
 ```
 
+书中的做法是把 SI 与时序分析合并进行；65nm 以下若只按最坏时序条件算 SI，结果偏悲观，需要结合电压降对关键路径单独仿真，把悲观量过滤掉（p.221）。最终的 MMMC 时序分析要在功耗分析与电压降分析合格之后再做（p.221）。
+
 ### 3.5 STA Sign-off 闭环不通过的可能原因
 
 | 现象 | 根因 |
@@ -320,7 +327,7 @@ foreach region [parse_ir_hotspot ir_hot.rpt] {
 ```
 EM (Electromigration)：
 - 在平均电流下，金属原子被搬运
-- 寿命标准：10 年 @ 70% 上限
+- 寿命标准：10 年 @ 65% 上限（与上文检查表一致；不同 foundry 与产品的限值不同，以工艺文件为准）
 - Single-bar/Single-via 检查
 - 常见违规：clock net、high toggle rate signal
 
@@ -408,6 +415,8 @@ foreach f [list $rpt_drc $rpt_lvs $rpt_ant] {
 
 LVS 检查 GDSII 与 netlist 是否**电气等价**。
 
+书中的电路检查就指 LVS：先对顶层布线做基本检查（有无短路、开路），再与底层标准单元的 GDSII 合并做 LVS；检查内容分电源与接地、信号线连接两部分，并按直流限度（电压降、线自热）与交流限度（不同时钟频率下的交流特性）两类电气特征核查（p.229）。
+
 ```
 需要做的：
 - Take P&R 后的 netlist (.v with .lib)
@@ -445,6 +454,18 @@ LVS 检查 GDSII 与 netlist 是否**电气等价**。
 | PERC | 电源门/短路路径/泄漏 |
 
 每一项都有 "0 critical" 的红线。
+
+### 5.6 光刻检查与芯片组装
+
+90nm 以下的设计，物理验证在 DRC 与电路检查之外还要加光刻检查与可制造性检查（p.228）。书中把光刻检查视为 DRC 的特例或扩展：布线工具已带光刻驱动、光刻预防、光刻补救与光刻修正功能，193nm 浸没式光刻可延伸到 45nm 节点；OPC 与相位移光罩的规则要求 DRC 对金属最大宽度、布线伸出（wire extension）、布线脚边（wire corner）做校正和检查（p.229）。
+
+物理设计的最后一道工序是芯片集成或组装（p.229）。层次化设计先完成各模块的时序与物理验证，产出布局规划、电源规划、最终门级网表、时序约束、LEF、DEF、SPEF、SDF、最终布线 GDSII、时钟树结果与时序报告，顶层再打平处理（p.229-230）。流片前还要在芯片空白处加公司 logo、在裸片四周画密封线（seal ring），并把芯片单元端口与封装管脚用 bonding 连接；对应的封装导线表要给出裸片管脚坐标、裸片与封装管脚的对应关系、封装管脚名称三项（p.230、p.232）。
+
+### 5.7 逻辑等效验证：签核的第三类任务
+
+书中的第三类签核任务是逻辑功能验证，其正式形式称为形式验证（conformal verification），书中同时把它称为逻辑等效验证或逻辑等效检查（p.231）。两者不是并列关系：形式验证指手段，逻辑等效指检查内容；功能验证（functional verification）另算一类，侧重设计本身（p.231）。
+
+形式等价检查贯穿整个设计过程，从 RTL 经逻辑综合、逻辑优化、测试插入、布图规划、布局、时钟树综合、布线、P&R 优化一直到 ECO 与芯片组装（p.231）。比较对象可以是同一设计在不同阶段的两个网表，例如 RTL 对门级、门级对门级，也可扩展到 RTL 对版图，即 LVR（layout versus RTL）（p.231）。物理实现期间 RTL 与门级网表会不断更新，直到 RTL 冻结（frozen）为止（p.231）。
 
 ---
 
@@ -607,7 +628,7 @@ AI tool 的输出：
 
 ### Q2：MMMC 复杂度的下限是多少？
 
-**答**：4 corner × 2 mode = **8 个 view**。少于这个 sign-off 不充分。
+**答**：书中的基准是多数设计只用 BC/WC 两个端角（p.223）；4 corner × 2 mode = **8 个 view** 是加入扫描等模式后的工程口径，不宜当作书本下限。
 
 ### Q3：IR drop 5% 的依据是什么？
 
@@ -630,7 +651,7 @@ AI tool 的输出：
 
 ### Q7：sign-off 报告与 foundary 的"交接"如何做？
 
-**答**：所有 sign-off 报告 + GDSII + Netlist + SDC + SPEF + SDF + Liberty 打包到 foundary specified location；签发 3 张 letter（Timing / Power / LVS）。
+**答**：所有 sign-off 报告 + GDSII + Netlist + SDC + SPEF + SDF + Liberty 打包到 foundary specified location；签发 3 张 letter（Timing / Power / LVS）。书中的交付清单更窄：版图 GDSII、DRC/LVS 规则文件、DRC/LVS 结果文件，IP 合并时另附 SPICE 网表与封装导线表（p.232）。
 
 ### Q8：Cerebrus 与传统 sign-off 的关系？
 

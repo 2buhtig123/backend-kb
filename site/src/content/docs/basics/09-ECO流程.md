@@ -4,7 +4,8 @@ description: "功能 ECO 与 Metal-Only ECO 的实施流程、spare cell 使用�
 module: basics
 order: 8
 references:
-  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核"
+  - "《数字集成电路物理设计》第 10 章 芯片设计的最终验证与签核（p.220-234）"
+verified: true
 ---
 
 # ECO（Engineering Change Order）：流程与实施方法
@@ -36,7 +37,9 @@ references:
 
 ## 一、ECO 的三种类型与基本原理
 
-### 1.1 ECO 三大类型
+### 1.1 按修复内容分的三类 ECO
+
+书中的分类轴不是修复内容，而是问题被发现的阶段：按逻辑等效验证发现问题的时期，ECO 分为签核流片之前与签核流片之后两类（p.232）。前者只要空间允许，可用递增式布局加入新逻辑，逐层改线；后者只能改上层金属连线，靠流片前预布的 spare gate 接线（p.232）。下表按修复内容划分，属工程口径。
 
 | ECO 类型 | 触发原因 | 修复方法 | 工程量 |
 |---|---|---|---|
@@ -48,7 +51,7 @@ references:
 
 ```
 金属层 ECO (Metal-Only ECO, MECO)：
-- 不改 stdcell，只改 M1/M2/M3 金属层
+- 不改 stdcell，只改上层金属连线，底层单元与 M1 不动（p.232）
 - 修改成本最低 ~ $5k-10k 一层金属 mask
 - 用于 timing/power 修复
 
@@ -189,6 +192,8 @@ report_timing
 - RTL 修复只有几行——但 RTL 修改 = 重新综合 + 重新 PNR + 重新 Sign-off = **至少 2 周 + $200k**
 - Metal-Only ECO 可行吗？**不一定**——功能改了，stdcell 改了，绕线全变了
 
+书中的判断更细：签核流片之前，只要空间允许，可以用递增式布局把新逻辑加进去，每一层连线都能改，不必重跑整个物理流程；真正受限的是流片之后（p.232）。
+
 **实际工程两类策略**：
 1. **Spare Cell 提前部署**：从 RTL 阶段就规划好可重构的 cell（详见下一节）
 2. **Function ECO 直接走 Logic**：但只改最关键 cell，最小化金属变化
@@ -196,7 +201,7 @@ report_timing
 ### 3.2 Function ECO vs Spare Cell 重建
 
 **Spare Cell 路线**：
-- 提前：RTL 设计阶段插入 `SYMBOLIC` spare cell
+- 提前：物理实施开始时把 spare cell 随门级网表一起读入并随机布放（p.232）
 - 修复时：把 spare cell 改成你要的 cell，连接对应 net
 - 优点：完全 metal-only，0 mask 重做
 - 缺点：只解决"已经规划好"的 bug
@@ -532,6 +537,7 @@ trace_opt -eco -track path_id
 □ re-extract parasitics（如果动了金属层）
 □ DRC 验证（calibre DRC）
 □ LVS 验证（calibre LVS）
+□ 逻辑等效验证（形式验证）：确认改后网表与参考网表等价（p.231）
 □ Re-run sign-off STA（含变化的 corner）
 □ IR/EM 验证（如果改了 power grid）
 □ 最后：sign-off 报告合并入主文档
@@ -561,7 +567,7 @@ trace_opt -eco -track path_id
 
 ### Q2：为什么 Function ECO 通常 Logic + Metal ECO？
 
-**答**：功能修改需要改变 stdcell 数量或类型，所以必然 logic 变动；metal 仅当 Insert 时连接完整。
+**答**：签核流片之前改功能可以新增逻辑，必然牵动 cell 与绕线；流片之后则只能靠预布的 spare gate 接线，仍属 metal-only（p.232）。
 
 ### Q3：useful skew 的工程含义？
 
@@ -578,7 +584,7 @@ trace_opt -eco -track path_id
 
 ### Q6：金属 ECO 与 Logic ECO 的本质区别？
 
-**答**：金属 ECO = M1/M2/M3 调，stdcell 不动；Logic ECO = stdcell 类型/数量改，必然牵动 routing。
+**答**：金属 ECO = 上层金属连线调，M1 与 stdcell 不动（p.232）；Logic ECO = stdcell 类型/数量改，必然牵动 routing。
 
 ### Q7：怎么做到 0 DFM IR-drop 修复？
 
