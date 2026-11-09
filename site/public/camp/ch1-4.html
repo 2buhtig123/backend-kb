@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字IC后端学习笔记 · 第1-4章（基础理论与流程）</title>
+<style>
+:root{
+  --ink:#1f2430; --ink2:#5a6270; --ink3:#8a909c;
+  --bg:#f6f7f9; --card:#ffffff; --line:#e4e7ec;
+  --blue:#185fa5; --blue-bg:#eaf2fb; --blue-line:#bcd4ee;
+  --teal:#0f6e56; --teal-bg:#e3f3ee;
+  --amber:#854f0b; --amber-bg:#fdf3df; --amber-line:#f0dcae;
+  --red:#a32d2d; --red-bg:#fbecec;
+  --purple:#534ab7; --purple-bg:#eeedfe;
+  --mono:"Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;font-size:15px}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+
+/* ===== header ===== */
+header{background:linear-gradient(135deg,#0c447c 0%,#185fa5 60%,#1d9e75 100%);color:#fff;padding:52px 0 40px}
+header h1{font-size:26px;font-weight:600;letter-spacing:.5px}
+header .sub{margin-top:10px;font-size:14px;opacity:.85}
+header .meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+header .meta span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:3px 14px;font-size:12px}
+
+/* ===== toc ===== */
+nav.toc{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto}
+nav.toc a{white-space:nowrap;padding:12px 16px;font-size:13.5px;color:var(--ink2);text-decoration:none;border-bottom:2.5px solid transparent}
+nav.toc a:hover{color:var(--blue)}
+nav.toc a.hot{color:var(--blue);font-weight:600}
+
+/* ===== sections ===== */
+main{padding:36px 0 20px}
+section{margin-bottom:56px}
+.ch-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.ch-num{font-family:var(--mono);font-size:13px;color:#fff;background:var(--blue);border-radius:6px;padding:2px 10px;letter-spacing:1px}
+h2{font-size:22px;font-weight:600;color:var(--ink)}
+.ch-sub{color:var(--ink3);font-size:13px;margin-bottom:18px}
+h3{font-size:17.5px;font-weight:600;color:var(--blue);margin:30px 0 10px;padding-left:11px;border-left:4px solid var(--blue)}
+h4{font-size:15px;font-weight:600;margin:18px 0 6px}
+p{margin:8px 0}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0}
+strong{color:var(--ink)}
+em.hl{font-style:normal;background:linear-gradient(transparent 62%,#fde8a8 62%);padding:0 1px}
+
+/* ===== components ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 26px;margin:14px 0;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.callout{border-radius:10px;padding:14px 18px;margin:14px 0;font-size:14px;border:1px solid}
+.callout b{display:block;margin-bottom:4px;font-size:13.5px;letter-spacing:.5px}
+.c-interview{background:var(--amber-bg);border-color:#eeda9f;color:var(--amber)}
+.c-warn{background:var(--red-bg);border-color:#f0c4c4;color:var(--red)}
+.c-tip{background:var(--teal-bg);border-color:#bfe3d7;color:var(--teal)}
+.c-note{background:var(--purple-bg);border-color:#d5d2f4;color:var(--purple)}
+.tag{display:inline-block;font-size:11.5px;border-radius:4px;padding:1px 8px;vertical-align:2px;margin-left:8px;font-weight:600}
+.t-hot{background:var(--amber-bg);color:var(--amber);border:1px solid #eeda9f}
+.t-def{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-line)}
+.t-warn{background:var(--red-bg);color:var(--red);border:1px solid #f0c4c4}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.8px;background:var(--card)}
+th{background:#eef2f7;text-align:left;font-weight:600;color:var(--ink)}
+th,td{border:1px solid var(--line);padding:8px 12px;vertical-align:top}
+tr:nth-child(even) td{background:#fafbfd}
+td.mono,span.mono,code{font-family:var(--mono);font-size:13px;background:#f1f3f7;border-radius:4px;padding:1px 6px;color:#33415c}
+.formula{font-family:var(--mono);background:#0e2a47;color:#d8e8fa;border-radius:10px;padding:16px 22px;margin:14px 0;font-size:14.5px;line-height:2;overflow-x:auto}
+.formula .cm{color:#7fa8cf;font-size:12.5px}
+.formula b{color:#ffd479;font-weight:600}
+
+figure{margin:18px 0;text-align:center}
+figure img{max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px}
+figcaption{font-size:12.5px;color:var(--ink3);margin-top:8px}
+.img-fail{display:none}
+figure.fail .img-fail{display:block;background:var(--amber-bg);border:1px dashed #e3c87c;border-radius:8px;padding:14px;color:var(--amber);font-size:13px}
+figure.fail img{display:none}
+svg.diagram{width:100%;height:auto;display:block;margin:16px 0}
+.dg-note{font-size:13px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 18px}
+
+/* flow chips (HTML flow) */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0}
+.flow .step{background:var(--blue-bg);border:1px solid var(--blue-line);color:#0c447c;border-radius:8px;padding:6px 13px;font-size:13px;font-weight:600;white-space:nowrap}
+.flow .out{background:var(--teal-bg);border:1px solid #bfe3d7;color:var(--teal)}
+.flow .arr{color:var(--ink3);font-family:var(--mono);font-size:14px}
+.flow-label{font-size:12.5px;font-weight:700;letter-spacing:1px;color:var(--ink3);margin-right:6px}
+
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 14px;font-size:14px;margin:10px 0}
+.kv dt{color:var(--ink2);font-weight:600}
+.kv dd{margin:0}
+@media(max-width:600px){.kv{grid-template-columns:1fr}.kv dt{margin-top:8px}}
+
+footer{border-top:1px solid var(--line);margin-top:30px;padding:26px 0 44px;color:var(--ink3);font-size:12.5px}
+.top-link{position:fixed;right:22px;bottom:26px;background:var(--blue);color:#fff;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:18px;box-shadow:0 2px 8px rgba(12,68,124,.35)}
+</style>
+</head>
+<body>
+
+<a href="/" style="position:fixed;right:18px;bottom:18px;z-index:99;display:inline-block;padding:8px 14px;border-radius:999px;background:#1a3a5c;color:#fff;font-size:13px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);">← 返回知识库</a>
+
+<header>
+  <div class="wrap">
+    <h1>数字 IC 后端学习笔记 · 第 1–4 章</h1>
+    <div class="sub">基础理论与流程 —— 整理自「吾爱IC社区IC后端训练营（第29期）」图文讲义 · 配合自绘图解与原文配图</div>
+    <div class="meta">
+      <span>第1章 数字IC设计流程</span><span>第2章 物理设计基础概念</span><span>第3章 时序约束基础概念（重点）</span><span>第4章 28nm 工艺知识</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#overview">学习地图</a>
+    <a href="#ch1">第1章 设计流程</a>
+    <a href="#ch2">第2章 物理设计基础</a>
+    <a href="#ch3" class="hot">第3章 时序约束基础 ★</a>
+    <a href="#ch4">第4章 28nm 工艺</a>
+    <a href="#checklist">自检清单</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ============================================================ 学习地图 -->
+<section id="overview">
+  <div class="ch-head"><span class="ch-num">MAP</span><h2>学习地图：这 4 章在讲什么</h2></div>
+  <p>第 1–4 章是全课程的<strong>地基</strong>：先建立「芯片从需求到流片」的全局视角，再掌握物理实现要用到的三套底层语言——<em class="hl">电路语言（标准单元）</em>、<em class="hl">时序语言（setup/hold 与各类 variation 模型）</em>、<em class="hl">工艺语言（metal stack 与单元库）</em>。后面 5–43 章的所有实操，都是在反复使用这 4 章的概念。</p>
+
+  <div class="card">
+    <h4 style="margin-top:0">芯片的诞生：前端 → 后端</h4>
+    <div class="flow">
+      <span class="flow-label">前端</span>
+      <span class="step">需求 Spec</span><span class="arr">→</span>
+      <span class="step">RTL 设计</span><span class="arr">→</span>
+      <span class="step">功能验证 · DFT</span><span class="arr">→</span>
+      <span class="step">逻辑综合</span><span class="arr">→</span>
+      <span class="step out">输出网表 Netlist</span>
+    </div>
+    <div class="flow">
+      <span class="flow-label">后端</span>
+      <span class="step">Floorplan</span><span class="arr">→</span>
+      <span class="step">Placement</span><span class="arr">→</span>
+      <span class="step">CTS 时钟树</span><span class="arr">→</span>
+      <span class="step">Route 绕线</span><span class="arr">→</span>
+      <span class="step">Chip Finish</span><span class="arr">→</span>
+      <span class="step out">GDSII</span>
+    </div>
+    <div class="flow">
+      <span class="flow-label">签核</span>
+      <span class="step">StarRC 抽 RC</span><span class="arr">→</span>
+      <span class="step">PT 时序分析</span><span class="arr">→</span>
+      <span class="step">ECO 修复</span><span class="arr">→</span>
+      <span class="step">物理验证 DRC/LVS</span><span class="arr">→</span>
+      <span class="step out">交厂流片</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-top:0">四章知识点之间的依赖关系</h4>
+    <ul>
+      <li><strong>第1章</strong>回答「后端是干什么的」——为所有章节提供流程坐标。</li>
+      <li><strong>第2章</strong>回答「工具摆的是什么」——row/site/port/pin 是 Floorplan、Place 章节的对象。</li>
+      <li><strong>第3章</strong>回答「好坏怎么衡量」——setup/hold、PVT、OCV/CRPR、skew 是贯穿 place/CTS/route/ECO 的评价体系，<em class="hl">也是校招面试频率最高的部分</em>。</li>
+      <li><strong>第4章</strong>回答「在什么材料上做」——metal stack 决定了电源、时钟、信号各用哪层金属。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ 第1章 -->
+<section id="ch1">
+  <div class="ch-head"><span class="ch-num">CH 1</span><h2>数字 IC 设计流程</h2></div>
+  <div class="ch-sub">1 篇 · 475 字 + 1 图 —— 内容少但必须先建立全局观</div>
+
+  <h3>1.1 前端 vs 后端：一条分界线</h3>
+  <p>整个数字 IC 设计以<strong>网表（Netlist）</strong>为界，分成前后两段：</p>
+  <table>
+    <tr><th style="width:110px"></th><th>前端设计</th><th>后端设计（物理设计）</th></tr>
+    <tr><td><strong>输入</strong></td><td>客户需求 Spec</td><td>网表（综合后的门级电路）</td></tr>
+    <tr><td><strong>输出</strong></td><td>网表</td><td>GDSII 版图文件</td></tr>
+    <tr><td><strong>核心任务</strong></td><td>RTL 设计、IP 集成、DFT、功能验证、逻辑综合</td><td>把逻辑电路「变成物理图形」：布局、布线、时钟树、时序收敛、物理验证</td></tr>
+    <tr><td><strong>本质</strong></td><td>回答「电路做什么功能」</td><td>回答「电路如何落在硅片上还能正确、快速地工作」</td></tr>
+  </table>
+
+  <div class="callout c-tip"><b>怎么理解后端</b>
+  网表只描述「哪些门、怎么连」，没有任何位置信息。后端就是把每个单元放到硅片的具体坐标上、用金属线把它们连起来，同时保证时序满足要求、电源稳定、不违反工艺规则，最后输出 GDSII 交给代工厂（Fab）流片。</div>
+
+  <h3>1.2 后端 PR 全流程（Block 级）</h3>
+  <div class="card">
+    <ol>
+      <li><strong>Floorplan</strong> —— 规划芯片/模块的面积、摆放 macro 和 port</li>
+      <li><strong>Power Plan</strong> —— 搭建电源网络（stripe / rail）</li>
+      <li><strong>Placement</strong> —— 摆放标准单元</li>
+      <li><strong>CTS（Clock Tree Synthesis）</strong> —— 构建时钟树</li>
+      <li><strong>Routing</strong> —— 金属绕线（含 route opt）</li>
+      <li><strong>Chip Finish</strong> —— 插 decap / filler，补全版图</li>
+      <li><strong>StarRC + STA</strong> —— 抽取寄生参数，做静态时序分析</li>
+      <li><strong>ECO</strong> —— 修复剩余时序违例</li>
+      <li><strong>PV（物理验证）</strong> —— DRC / LVS 检查</li>
+      <li>（可选）功耗分析、DFM 处理</li>
+    </ol>
+    <p style="color:var(--ink2);font-size:13.5px">对应课程章节：7–15 章（Floorplan+电源）→ 16–19（Place）→ 20–27（CTS）→ 28–31（Route）→ 32–33（Finish）→ 34–36（抽取+STA）→ 37–38（ECO）→ 39–43（GDS/PV）。</p>
+  </div>
+
+  <div class="callout c-interview"><b>面试视角</b>
+  「请描述数字后端流程」几乎是必考题。答的时候<strong>按顺序报出步骤名 + 每步一句话目的</strong>即可，切忌只背名词。追问通常落在「place 和CTS 之间为什么要插入时钟树」「为什么 route 之后时序会更差」这类因果问题上。</div>
+
+  <h3>1.3 给初学者的学习建议（原文观点）</h3>
+  <ul>
+    <li>红色分界线以下（后端部分）是重点：要弄清<strong>每个步骤做什么、为什么要做</strong>。</li>
+    <li>先建立全局流程认识，后续学习才有针对性。</li>
+    <li>逻辑综合、形式验证只需大体知道用途，不必深究。</li>
+  </ul>
+
+  <figure>
+    <img src="assets/notes-ch1-4/51048000_1648538437.png" alt="数字IC设计全流程图" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 数字 IC 设计全流程（来源：训练营讲义 4_1）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+</section>
+
+<!-- ============================================================ 第2章 -->
+<section id="ch2">
+  <div class="ch-head"><span class="ch-num">CH 2</span><h2>物理设计基础概念</h2></div>
+  <div class="ch-sub">3 篇 · 标准单元 / Row 与 Site / Port·Terminal·Pin</div>
+
+  <h3>2.1 标准单元（Standard Cell）<span class="tag t-def">基础</span></h3>
+  <p>一个标准单元库通常含<strong>数百个单元</strong>。按电路功能分两大类：</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin-top:0">组合逻辑电路</h4>
+      <p style="font-size:13.5px;color:var(--ink2)">输出只取决于<strong>当前</strong>输入，无记忆。</p>
+      <table style="margin-top:8px">
+        <tr><th>类别</th><th>单元</th></tr>
+        <tr><td>反相类</td><td><code>INV</code> <code>NAND</code> <code>NOR</code>（输入端一般 2–4 个，接 1 个输入时等效反相器）</td></tr>
+        <tr><td>非反相类</td><td><code>BUF</code> <code>AND</code> <code>OR</code>（同样，单输入时等效 buffer）</td></tr>
+        <tr><td>常用逻辑</td><td><code>MUX</code> <code>XOR</code> <code>TBUF</code> 及复合门 <code>AOI / OAI</code></td></tr>
+        <tr><td>特殊功能</td><td>加法器、乘法器、除法器等</td></tr>
+      </table>
+      <p style="font-size:13px;color:var(--red)">注意：输入端数目太大会带来时序收敛问题。</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">时序逻辑电路</h4>
+      <p style="font-size:13.5px;color:var(--ink2)">输出与当前输入<strong>和上一时刻状态</strong>都相关，有记忆。</p>
+      <table style="margin-top:8px">
+        <tr><th>类别</th><th>特点</th></tr>
+        <tr><td>锁存器 <code>Latch</code>（如 D Latch）</td><td><strong>电平敏感</strong>，多用于高速通信时钟电路</td></tr>
+        <tr><td>寄存器 <code>Register / DFF</code></td><td><strong>时钟边沿触发</strong>，仅在时钟沿采样输入；ASIC 数字设计的主力</td></tr>
+      </table>
+      <p style="font-size:13px;color:var(--ink2)">flip-flop 广义上指一切由交叉耦合门构成的双稳态电路（含单稳、振荡电路）。</p>
+    </div>
+  </div>
+
+  <div class="callout c-note"><b>实现结构：静态互补 CMOS</b>
+  标准单元普遍采用静态互补 CMOS 结构——每个门都有对偶的<strong>上拉网络 PUN</strong>（连 VDD）和<strong>下拉网络 PDN</strong>（连 VSS）。优点：结构简单、设计容易、鲁棒性好；任意时刻输出都通过低阻路径连到 VDD 或 VSS，适合自动化的综合与布局布线工具。</div>
+
+  <h4>驱动强度与单元库多样性</h4>
+  <ul>
+    <li>每个逻辑功能（如 INV）都对应<strong>多种尺寸（W/L）、多种驱动强度</strong>的单元，驱动强度是基本尺寸的整数倍。</li>
+    <li>库越丰富，综合和 P&amp;R 工具的选择空间越大，设计者越能自由地在<strong>性能、面积、功耗、成本</strong>间权衡。</li>
+  </ul>
+
+  <h4>面向自动布局布线的版图规则（重点理解）</h4>
+  <table>
+    <tr><th>规则</th><th>为什么</th></tr>
+    <tr><td>所有单元<strong>等高</strong>（或为基本高度的整数倍）的矩形</td><td>保证能整齐地排在 row 上，不产生奇怪尺寸</td></tr>
+    <tr><td>版图用预先定义的模板设计</td><td>保证任意单元相邻摆放时不触发 DRC</td></tr>
+    <tr><td>输入输出 pin 的位置/大小/形状<strong>满足网格（grid）间距</strong></td><td>经典布线器基于网格布线，可简化算法、降低内存占用</td></tr>
+    <tr><td>电源/地线位于单元<strong>上下边界</strong></td><td>相邻单元共享电源轨，节省面积</td></tr>
+  </table>
+  <p>版图最终产出两套库文件：<code>LEF</code>（物理库：尺寸、pin 位置）与 <code>.lib</code>（时序库：延迟、功耗模型），供顶层芯片和模块单元调用。</p>
+
+  <figure>
+    <img src="assets/notes-ch1-4/60972900_1658040320.png" alt="标准单元版图示例" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 标准单元版图示例（讲义 5_1）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>2.2 Row 与 Site：摆放的坐标系 <span class="tag t-def">Floorplan 前置知识</span></h3>
+  <div class="kv">
+    <dt>Site</dt><dd><strong>最小布局单位</strong>，在 tech lef 中定义（<code>SITE</code> 语句）。<code>SIZE</code> 给出宽高；<code>X / Y / R90</code> 表示允许的翻转方向。标准单元的宽高都是 site 的整数倍。</dd>
+    <dt>Row</dt><dd>由一串 site 沿横向排成的「排」，是 Floorplan 的横向网格，<strong>约束标准单元只能摆在这里</strong>。需要摆 cell 的地方必须先创建 row。</dd>
+    <dt>Snap 规则</dt><dd>所有 std cell 必须 <em class="hl">snap（对齐吸附）到 row 上</em>——这是最基本的 place 规则。</dd>
+    <dt>相邻 row</dt><dd>相邻 row 相互 <strong>abut（紧贴）并 flip（翻转）</strong>，使相邻两个 site 共用同一根电源轨，节省 power 资源。</dd>
+    <dt>倍高 row</dt><dd>实际设计中常见 double / triple height row，用于摆放两倍、三倍高的 cell；只允许创建整数倍高的 row。</dd>
+  </div>
+
+  <svg class="diagram" viewBox="0 0 880 320" role="img" xmlns="http://www.w3.org/2000/svg">
+    <title>Row 与 Site 结构示意</title>
+    <desc>site 组成 row，相邻 row 翻转后共用电源轨，标准单元必须对齐到 row 上摆放</desc>
+    <rect x="30" y="30" width="560" height="250" rx="12" fill="#ffffff" stroke="#e4e7ec"/>
+    <text x="50" y="58" font-size="14" font-weight="600" fill="#1f2430">Rows（由 site 组成，相邻行 flip）</text>
+    <!-- rails: shared power lines between flipped rows -->
+    <rect x="60" y="80" width="500" height="4" fill="#e24b4a"/>
+    <text x="570" y="76" font-size="11" fill="#a32d2d">VDD</text>
+    <rect x="60" y="124" width="500" height="4" fill="#0f6e56"/>
+    <text x="570" y="121" font-size="11" fill="#0f6e56">VSS</text>
+    <rect x="60" y="168" width="500" height="4" fill="#e24b4a"/>
+    <text x="570" y="165" font-size="11" fill="#a32d2d">VDD</text>
+    <rect x="60" y="212" width="500" height="4" fill="#0f6e56"/>
+    <text x="570" y="209" font-size="11" fill="#0f6e56">VSS</text>
+    <!-- row 1: sites -->
+    <g fill="#eaf2fb" stroke="#bcd4ee">
+      <rect x="60" y="84" width="40" height="36"/><rect x="100" y="84" width="40" height="36"/><rect x="140" y="84" width="40" height="36"/><rect x="180" y="84" width="40" height="36"/><rect x="220" y="84" width="40" height="36"/><rect x="260" y="84" width="40" height="36"/><rect x="300" y="84" width="40" height="36"/><rect x="340" y="84" width="40" height="36"/><rect x="380" y="84" width="40" height="36"/><rect x="420" y="84" width="40" height="36"/><rect x="460" y="84" width="40" height="36"/><rect x="500" y="84" width="40" height="36"/>
+    </g>
+    <!-- row 2: flipped (arrow left) with a cell placed -->
+    <g fill="#e3f3ee" stroke="#bfe3d7">
+      <rect x="60" y="128" width="40" height="36"/><rect x="100" y="128" width="40" height="36"/><rect x="140" y="128" width="40" height="36"/><rect x="180" y="128" width="40" height="36"/><rect x="220" y="128" width="40" height="36"/><rect x="260" y="128" width="40" height="36"/><rect x="300" y="128" width="40" height="36"/><rect x="340" y="128" width="40" height="36"/><rect x="380" y="128" width="40" height="36"/><rect x="420" y="128" width="40" height="36"/><rect x="460" y="128" width="40" height="36"/><rect x="500" y="128" width="40" height="36"/>
+    </g>
+    <rect x="220" y="130" width="120" height="32" rx="4" fill="#fdf3df" stroke="#d8b45a"/>
+    <text x="280" y="150" font-size="12" text-anchor="middle" fill="#854f0b">std cell (snap)</text>
+    <!-- row 3 -->
+    <g fill="#eaf2fb" stroke="#bcd4ee">
+      <rect x="60" y="172" width="40" height="36"/><rect x="100" y="172" width="40" height="36"/><rect x="140" y="172" width="40" height="36"/><rect x="180" y="172" width="40" height="36"/><rect x="220" y="172" width="40" height="36"/><rect x="260" y="172" width="40" height="36"/><rect x="300" y="172" width="40" height="36"/><rect x="340" y="172" width="40" height="36"/><rect x="380" y="172" width="40" height="36"/><rect x="420" y="172" width="40" height="36"/><rect x="460" y="172" width="40" height="36"/><rect x="500" y="172" width="40" height="36"/>
+    </g>
+    <!-- row 4 partial -->
+    <g fill="#e3f3ee" stroke="#bfe3d7">
+      <rect x="60" y="216" width="40" height="36"/><rect x="100" y="216" width="40" height="36"/><rect x="140" y="216" width="40" height="36"/><rect x="180" y="216" width="40" height="36"/><rect x="220" y="216" width="40" height="36"/><rect x="260" y="216" width="40" height="36"/><rect x="300" y="216" width="40" height="36"/><rect x="340" y="216" width="40" height="36"/><rect x="380" y="216" width="40" height="36"/><rect x="420" y="216" width="40" height="36"/><rect x="460" y="216" width="40" height="36"/><rect x="500" y="216" width="40" height="36"/>
+    </g>
+    <!-- site zoom callout -->
+    <rect x="60" y="84" width="40" height="36" fill="none" stroke="#534ab7" stroke-width="2" stroke-dasharray="4 3"/>
+    <path d="M100 102 L 660 240" fill="none" stroke="#a9a5e0" stroke-dasharray="4 3"/>
+    <rect x="660" y="215" width="130" height="70" rx="8" fill="#eeedfe" stroke="#c7c3ef"/>
+    <text x="725" y="240" font-size="12" text-anchor="middle" fill="#534ab7">1 个 SITE</text>
+    <text x="725" y="258" font-size="11" text-anchor="middle" fill="#534ab7">最小布局单位</text>
+    <text x="725" y="274" font-size="10.5" text-anchor="middle" fill="#8a83d8">tech lef 中定义</text>
+    <!-- direction arrows -->
+    <text x="280" y="72" font-size="11" fill="#8a909c" text-anchor="middle">row 方向 →</text>
+    <text x="280" y="272" font-size="11" fill="#8a909c" text-anchor="middle">← flip row 方向</text>
+    <text x="60" y="300" font-size="11.5" fill="#8a909c">相邻 row abut + flip：中间只保留一根电源轨，两个 row 共用（省面积）</text>
+  </svg>
+
+  <figure>
+    <img src="assets/notes-ch1-4/15154700_1648713658.png" alt="tech lef 中的 SITE 定义" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · tech lef 中的 SITE 定义（讲义 5_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/50030600_1648713659.png" alt="double height row" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · double height row 示例（讲义 5_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>2.3 Port · Terminal · Pin：三个容易混淆的词 <span class="tag t-hot">面试易混</span></h3>
+  <table>
+    <tr><th style="width:110px">术语</th><th style="width:190px">属于谁</th><th>含义</th></tr>
+    <tr>
+      <td><strong>Port</strong></td><td>逻辑概念，属于 block 模块</td>
+      <td>模块的<strong>端口/接口信号</strong>。网表中写作 <code>module design_name (port1, ..., portn);</code>——它描述的是「带功能的黑盒子」对外连接关系，<em class="hl">是纯逻辑存在，没有物理形状</em>。</td>
+    </tr>
+    <tr>
+      <td><strong>Terminal</strong></td><td>物理概念，属于 PR 阶段</td>
+      <td>PR 时要把逻辑连接变成<strong>金属连接</strong>，于是在每个 port 上创建一个 terminal——<em class="hl">一块真实的 metal shape</em>，与 port <strong>一一对应</strong>。工具绕线就是通过这块 metal 实现物理连接的。</td>
+    </tr>
+    <tr>
+      <td><strong>Pin</strong></td><td>属于 cell（单元）</td>
+      <td>cell 的<strong>引脚</strong>。例如 AOI cell 有 3 个输入 pin（A2、B1、B2）和 1 个输出 pin（ZN）。cell 的「功能」正是通过这些 pin 实现的——就像人有手有脚才能发挥功能。</td>
+    </tr>
+  </table>
+  <div class="callout c-warn"><b>易错点</b>
+  Port 是<strong>逻辑</strong>的，Terminal 是它的<strong>物理替身</strong>（一一对应）；Pin 是 cell 内部的引脚概念，和 port/terminal 不是一个层面的东西。面试被问到「port 和 terminal 什么关系」时，答出「逻辑 vs 物理、一一对应、绕线靠 terminal 的 metal shape 连接」就是满分。</div>
+
+  <figure>
+    <img src="assets/notes-ch1-4/44798000_1651736775.png" alt="terminal 与 port 的对应" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · port 与 terminal 的对应关系（讲义 5_3）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/31127500_1651736776.png" alt="AOI cell 的 pin" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · AOI cell 的 4 个 pin（A2/B1/B2 输入，ZN 输出）（讲义 5_3）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+</section>
+
+<!-- ============================================================ 第3章 -->
+<section id="ch3">
+  <div class="ch-head"><span class="ch-num">CH 3</span><h2>时序约束基础概念 <span style="color:var(--amber);font-size:14px">★ 全课程最重要的理论章</span></h2></div>
+  <div class="ch-sub">7 篇 · 时序计算 / 延迟模型 / RC / PVT / OCV / CRPR / Clock Skew —— 原文反复强调「校招一定会问」</div>
+
+  <h3>3.1 Setup 与 Hold：时序分析的根基 <span class="tag t-hot">校招必问</span></h3>
+
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin-top:0">建立时间 Setup Time</h4>
+      <p>在<strong>采样时钟沿到来之前</strong>，数据必须提前保持稳定的最短时间。</p>
+      <p style="font-size:13px;color:var(--ink2)">Data must be stable at least <b>before</b> the active clock edge for it to be latched correctly.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">保持时间 Hold Time</h4>
+      <p>在<strong>采样时钟沿到来之后</strong>、下一次数据变化之前，数据必须继续保持稳定的最短时间。</p>
+      <p style="font-size:13px;color:var(--ink2)">Data must remain stable at least <b>after</b> the active clock edge.</p>
+    </div>
+  </div>
+
+  <div class="callout c-warn"><b>先纠正一个记忆陷阱</b>
+  setup 是「<strong>沿前</strong>建立」，hold 是「<strong>沿后</strong>保持」。真正要理解的是后面两条——为什么 setup 公式里有 Tc（周期）而 hold 公式里没有。</div>
+
+  <h4>名词表（配合原文电路图记忆）</h4>
+  <div class="kv">
+    <dt>Launch edge</dt><dd>发射沿：有效时钟的第一个上升沿（REG1 在这里发出数据）</dd>
+    <dt>Latch edge</dt><dd>采样沿：有效时钟的第二个上升沿（REG2 在这里采样）；与发射沿相差约 1 个周期 Tc</dd>
+    <dt>Tclk1 / Tclk2</dt><dd>时钟源分别到 REG1 / REG2 时钟端的延迟（差值即时钟树带来的 skew）</dd>
+    <dt>Tco</dt><dd>寄存器 CK→Q 的输出延迟</dd>
+    <dt>Tdata</dt><dd>两寄存器间组合逻辑 + 布线延迟</dd>
+    <dt>Tc (Tclk)</dt><dd>时钟周期</dd>
+    <dt>Ts / Th</dt><dd>建立 / 保持时间要求</dd>
+    <dt>Slack</dt><dd>余量，必须 ≥ 0</dd>
+  </div>
+
+  <div class="formula">
+    Setup:&nbsp; Ts = Tlatch − Tarrive = <b>Tc + Tclk2 − Tclk1 − Tco − Tdata</b> &nbsp;<span class="cm">= Tc + Tskew − T1，T1 = Tco+Tdata</span><br>
+    Hold:&nbsp;&nbsp; Th = Tdata2 − Tlatch = <b>Tclk1 + Tco + Tdata − Tclk2</b> &nbsp;<span class="cm">= T1 − Tskew，注意：没有 Tc！</span>
+  </div>
+
+  <div class="callout c-tip"><b>两条核心结论（必须能脱口而出）</b>
+  ① <strong>Setup 检查的是发射沿与采样沿「两个沿之间」的故事</strong>——所以公式里有 Tc，周期越大越好建立 → <em class="hl">setup 决定电路最高工作频率</em>。<br>
+  ② <strong>Hold 检查只发生在同一个采样沿前后</strong>，发射沿从头到尾没有参与——所以公式里没有 Tc → <em class="hl">hold 与时钟频率无关</em>；关键路径越长对 hold 反而越有利。实际设计中 hold 通常问题不大，<strong>setup 才是 timing 的关键</strong>。</div>
+
+  <p>由 setup 公式还能直接得到两条设计直觉：</p>
+  <ul>
+    <li><code>Tc</code> 越大 → Ts 越容易为正 → 频率换时序裕量；</li>
+    <li>关键路径 <code>T1</code> 越长 → Ts 越小 → <em class="hl">建立时间违例通常就是关键组合路径太长</em>。</li>
+  </ul>
+  <p style="color:var(--ink2);font-size:13.5px">延伸：时钟源到各寄存器的路径布局布线很重要——这就是 FPGA 推荐用 PLL 输出时钟、而不是自己分频的原因。「给定电路求最高工作频率」的计算题务必会做。</p>
+
+  <figure>
+    <img src="assets/notes-ch1-4/10587500_1648625885.jpg" alt="两级寄存器时序模型" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · REG1→REG2 经典时序模型（讲义 6_1）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>3.2 延迟计算模型（Delay Calculation）<span class="tag t-def">了解层次即可</span></h3>
+  <p>延迟分两大类：<strong>cell delay</strong>（单元内部延迟）与 <strong>interconnect delay</strong>（互连线 / net delay）。参数以<strong>查找表（Lookup Table）</strong>形式存储。之所以需要专门的延迟计算，是因为存在复杂的输入电容、电压降、电压岛、高阻网络等非理想因素。</p>
+  <div class="grid2">
+    <div class="card">
+      <h4 style="margin-top:0">Cell Delay 模型</h4>
+      <table style="margin-top:6px">
+        <tr><th>模型</th><th>一句话理解</th></tr>
+        <tr><td><code>NLDM</code></td><td>非线性延迟模型，按（输入过渡 + 输出负载）查二维表，最经典</td></tr>
+        <tr><td><code>SPDM</code></td><td>可伸缩多项式模型，用多项式拟合</td></tr>
+        <tr><td><code>ECSM</code></td><td>有效电流源模型，精度更高</td></tr>
+        <tr><td><code>CCS</code></td><td>复合电流源模型，先进工艺常用</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">Interconnect Delay 模型</h4>
+      <table style="margin-top:6px">
+        <tr><th>模型</th><th>一句话理解</th></tr>
+        <tr><td><code>WLD</code></td><td>线负载模型，综合阶段按扇出估算线长（无物理信息时的近似）</td></tr>
+        <tr><td><code>Lumped RCL</code></td><td>把整条线集总成一个 R/C/L</td></tr>
+        <tr><td><code>Elmore</code></td><td>经典 RC 树延迟近似，简单快速</td></tr>
+        <tr><td><code>Arnoldi</code></td><td>阶数缩减的精确 RC 网络求解</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="callout c-note"><b>怎么掌握</b>
+  各模型的<strong>优缺点</strong>要能说出来，原理「了解即可」（可参考 STA 教材）。面试常问：「NLDM 和 CCS 的区别？」——核心答点：NLDM 是电压查表模型，CCS/ECSM 是电流源模型，对深亚微米工艺的长距离互连、大负载建模更精确。</div>
+
+  <figure>
+    <img src="assets/notes-ch1-4/98094300_1648713713.jpg" alt="cell delay models" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · Cell Delay Models 对比（讲义 6_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>3.3 RC 模型：net delay 的物理来源</h3>
+  <p>绕线本质是一段有电阻、有电容的金属，三个公式决定了它对时序的影响：</p>
+  <div class="formula">
+    线电阻&nbsp;&nbsp; R = ρ·L / (W·T) &nbsp;<span class="cm">ρ 电阻率，L 线长，W 宽，T 厚</span><br>
+    同层耦合电容&nbsp; C<sub>c</sub> ∝ T / S &nbsp;<span class="cm">S 同层相邻线间距 —— 厚一点、近一点，耦合更大</span><br>
+    层间表面电容&nbsp; C<sub>s</sub> ∝ W / D &nbsp;<span class="cm">D 相邻两层金属间距，W 走线宽度</span><br>
+    <b>net delay ≈ 3 × R × C</b> &nbsp;<span class="cm">RC 越大，net delay 越大</span>
+  </div>
+  <table>
+    <tr><th>物理量</th><th>怎么变小</th><th>设计上的直接应用</th></tr>
+    <tr><td>线电阻 R</td><td>加宽 W、加厚 T（高层金属更厚）</td><td><em class="hl">Power plan 用高层金属打</em>——电阻小、IR drop 小（第13-14章会反复用到）</td></tr>
+    <tr><td>耦合电容 C<sub>c</sub></td><td>拉开同层间距 S</td><td>串扰（crosstalk）的罪魁祸首就是耦合电容；时钟线做 NDR（加倍间距）的依据（第22章）</td></tr>
+    <tr><td>表面电容 C<sub>s</sub></td><td>减小走线宽度 / 拉大层间距</td><td>走线越宽电容越大 → 驱动它的 cell 要更强</td></tr>
+  </table>
+
+  <h3>3.4 PVT 与工艺角（Process Corner）<span class="tag t-hot">面试常问</span></h3>
+  <p>MOSFET 参数在晶片之间、批次之间变化很大。工艺厂把器件性能限制在若干个「角」内：</p>
+  <div class="formula">
+    5-corner：TT&nbsp;<span class="cm">双 Typical</span> · FF&nbsp;<span class="cm">双 Fast</span> · SS&nbsp;<span class="cm">双 Slow</span> · FS · SF<br>
+    <span class="cm">N/P 管速度各取 快/慢 组合；ss = 左下角，tt = 中心，ff = 右上角</span>
+  </div>
+  <ul>
+    <li>Fast ≈ 薄栅氧、低阈值 → 驱动电流（Ids）最大；Slow 反之。单一器件测量结果呈<strong>正态分布</strong>，5 个 corner 覆盖约 <strong>±3σ（99.73%）</strong>。</li>
+    <li>造成偏差的因素：掺杂浓度、制造温度、刻蚀程度等 → 同一晶圆不同区域、不同晶圆之间都有差异，只能用统计方法评估。</li>
+    <li>工艺角之外再叠加<strong>电压</strong>（如 1.0V±10%）和<strong>温度</strong>（-40 / 0 / 25 / 125℃）的组合，就是 <strong>PVT</strong>。</li>
+  </ul>
+  <table>
+    <tr><th>STA 标准条件</th><th>组合</th><th>用途</th></tr>
+    <tr><td><code>WCS</code> Worst Case Slow</td><td>slow 工艺 + 高温 + 低压</td><td>最坏建立时间分析</td></tr>
+    <tr><td><code>TYP</code> Typical</td><td>typical 工艺 + 常温 + 标称电压</td><td>典型情况</td></tr>
+    <tr><td><code>BCF</code> Best Case Fast</td><td>fast 工艺 + 低温 + 高压</td><td>最好情况（hold 分析）</td></tr>
+    <tr><td><code>WCL</code> Worst @ Cold</td><td>slow 工艺 + <strong>低</strong>温 + 低压</td><td>低温下 slow 工艺反而更慢的 corner（温度反转效应）</td></tr>
+    <tr><td><code>ML</code> Max Leakage</td><td>fast 工艺 + 高温 + 高压</td><td>功耗分析用：漏电最大</td></tr>
+    <tr><td><code>TL</code> Typ Leakage</td><td>typical 工艺 + 高温 + 标称电压</td><td>功耗分析用：典型漏电</td></tr>
+  </table>
+  <div class="callout c-note"><b>Best / Worst 的定义是相对的</b>
+  时序上「最快」叫 Best Case，「最慢」叫 Worst Case；不同类型设计（如考虑漏电时）定义可以不同。</div>
+
+  <figure>
+    <img src="assets/notes-ch1-4/31360800_1648713759.png" alt="process corner 星空图" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · Process Corner（NFET/PFET 快慢组合的星空图）（讲义 6_4）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>3.5 OCV：从「统一悲观」到「统计精确」<span class="tag t-hot">面试高频</span></h3>
+  <p><strong>OCV = On-Chip Variation</strong>：同一颗芯片上的晶体管也会有快有慢。先分清两种 variation：</p>
+  <table>
+    <tr><th style="width:150px">类型</th><th>含义</th></tr>
+    <tr><td><strong>Global variation</strong></td><td><em>芯片之间</em>的性能差异（批量制造无法保证每颗一致），本质就是 PVT</td></tr>
+    <tr><td><strong>Local variation</strong></td><td><em>同一颗芯片内</em>同一器件表现不一致——OCV 真正要处理的对象</td></tr>
+  </table>
+  <p>PVT 三个字母在芯片内的具体表现：</p>
+  <div class="kv">
+    <dt>Process</dt><dd>掩模印刷、刻蚀缺陷 → 沟道长度、氧化层厚度、掺杂浓度、金属厚度波动。器件方程 <code>I<sub>D</sub> = ½μC<sub>ox</sub>(W/L)(V<sub>GS</sub>−V<sub>Th</sub>)²</code> 中每个参数都受影响</dd>
+    <dt>Voltage</dt><dd>单元位置不同 → 电源网络上的压降不同（<em class="hl">IR drop</em>）</dd>
+    <dt>Temperature</dt><dd>局部 cell 密度高、翻转率高 → 局部热点，结温不均 → 延迟不同</dd>
+  </div>
+
+  <h4>三代 OCV 分析方法（演进主线：悲观度递减、精度递增）</h4>
+  <table>
+    <tr><th style="width:110px">方法</th><th>机制</th><th>特点</th></tr>
+    <tr>
+      <td><strong>OCV</strong><br><span style="font-size:12px;color:var(--ink3)">flat derate</span></td>
+      <td>对 launch / capture / data 路径统一乘一个 derate 系数。如 setup：launch ×1.1（更慢），capture ×0.9（更早）→ 双向拉开悲观</td>
+      <td>简单粗暴，<strong>悲观度最高</strong>；common path 会被重复悲观（引出 CRPR）</td>
+    </tr>
+    <tr>
+      <td><strong>AOCV</strong><br><span style="font-size:12px;color:var(--ink3)">= SBOCV，stage based</span></td>
+      <td>derate 不再是常数，而是查表：<strong>path depth</strong>（逻辑级数越深，统计平均效应越明显，derate 越小）+ <strong>path distance</strong>（物理跨越距离）</td>
+      <td>比 flat OCV 精确，悲观度显著降低</td>
+    </tr>
+    <tr>
+      <td><strong>POCV</strong><br><span style="font-size:12px;color:var(--ink3)">= SOCV，statistical</span></td>
+      <td>把每个 cell 的 delay 建模成<strong>正态分布</strong>（均值 μ + σ），整体落在 ±3σ 内概率 99.7%。σ 可来自 .lib，也可通过 <code>read_aocvm</code> 读参数文件计算</td>
+      <td>最先进，单一 cell 级统计建模，不依赖 stage 深度近似</td>
+    </tr>
+  </table>
+  <p>实现方式：① 使用与主 PVT 库配套的「微小差异」PVT 库；② 用 <code>set_timing_derate</code> 设全局 derate 值。</p>
+
+  <figure>
+    <img src="assets/notes-ch1-4/44848400_1658040460.png" alt="POCV 正态分布" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · POCV 将 delay 建模为正态分布（讲义 6_5）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>3.6 CRPR：把 common path 上「重复的悲观」减掉</h3>
+  <p>考虑 OCV 的 setup 检查时，launch 和 capture 两条时钟路径在<strong>分叉前有一段公共路径（common path）</strong>。物理上这段公共路径只存在一种真实延迟，但计算时却被分别乘上了 late（×1.2）和 early（×0.9）两个 derate——两套悲观互相矛盾，计算过度悲观。<strong>CRPR（Clock Reconvergence Pessimism Removal）就是把这部分多余悲观减掉</strong>：</p>
+  <div class="formula">
+    CRPR = (common point 处 latest arrival) − (common point 处 earliest arrival)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1.2×1.2 − 1.2×0.9 = 1.44 − 1.08 = <b>0.36ns</b><br>
+    修正后：T<sub>min</sub> = 7.171 − 0.36 = <b>6.811ns</b> &nbsp;<span class="cm">周期变小 → 性能提升</span>
+  </div>
+
+  <div class="callout c-tip"><b>Signoff 实务（原文强调的经验之谈）</b>
+  实际 signoff 时 derate 不会设得这么极端：<strong>setup 检查在 worst corner 下 cell 已经最慢，launch 不加 derate，只对 capture 加</strong>；<strong>hold 检查反过来，只对 launch 加</strong>。并且 clock path 与 data path 可以分别设置 derate，做到精细化。</div>
+
+  <figure>
+    <img src="assets/notes-ch1-4/82427100_1652858999.jpg" alt="考虑 OCV 的 setup 检查" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 考虑 OCV 的 setup 检查数值例（讲义 6_6）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/50323400_1652859012.jpg" alt="考虑 OCV 的 hold 检查" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 考虑 OCV 的 hold 检查数值例（含 CRPR 修正）（讲义 6_6）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <h3>3.7 Clock Skew：一把「双刃剑」<span class="tag t-hot">setup/hold 权衡</span></h3>
+  <p><strong>本课程的定义约定</strong>（先统一语言，避免与其他教材混淆）：</p>
+  <div class="callout c-note"><b>定义</b>
+  skew = Tlaunch − Tcapture。<strong>Positive skew</strong>：capture 时钟路径比 launch 长（采样沿来得<strong>更晚</strong>）；<strong>Negative skew</strong>：capture 更早到达。</div>
+
+  <div class="formula">
+    Setup 万能式：&nbsp; T<sub>CLK</sub> ≥ (T<sub>launch</sub> − T<sub>capture</sub>) + T<sub>ck2q</sub> + T<sub>dp</sub> + T<sub>setup</sub><br>
+    Hold 万能式：&nbsp;&nbsp; (T<sub>launch</sub> − T<sub>capture</sub>) + T<sub>ck2q</sub> + T<sub>dp</sub> ≥ T<sub>hold</sub><br>
+    <span class="cm">左边 = launch path，右边 = capture path —— 这正是 PT timing report 的结构</span>
+  </div>
+
+  <table>
+    <tr><th>Skew 情形</th><th>对 Setup</th><th>对 Hold</th><th>记忆口诀</th></tr>
+    <tr><td><strong>Positive</strong>（capture 晚到）</td><td>slack <strong>变大</strong>（数据可用窗口 = 1 周期 + skew）</td><td>slack <strong>变小</strong>（更易违例）</td><td rowspan="2">skew 是零和博弈：<strong>占了一边的便宜，就欠另一边的债</strong></td></tr>
+    <tr><td><strong>Negative</strong>（capture 早到）</td><td>slack <strong>变小</strong>（窗口 = 1 周期 − skew）</td><td>slack <strong>变大</strong></td></tr>
+  </table>
+
+  <p>波形角度理解：setup 检查的是「发射沿发数据 → 采样沿采样」的区间。Positive skew 时采样沿被推迟，这个区间比一个周期还宽，数据只要在此范围内到达即可 → setup 更容易满足；而 hold 检查发生在同一采样沿前后，采样沿推迟后新数据到达得更晚，旧数据必须保持得更久 → hold 更紧张。</p>
+
+  <figure>
+    <img src="assets/notes-ch1-4/7434200_1651735698.png" alt="positive clock skew 电路" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 每个 inverter 1ns：capture 路径 5ns &gt; launch 4ns → positive skew 1ns（讲义 6_7）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/98010700_1651735698.png" alt="positive skew 波形" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · Positive skew 的 setup 检查波形（讲义 6_7）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+
+  <div class="callout c-interview"><b>面试怎么答「skew 是不是越小越好」</b>
+  不是。① skew 由时钟树产生，CTS 的目标是<strong>平衡</strong>（插入延迟可控、skew 达标），而不是盲目归零；② 有意利用 useful skew 可以借慢路径的裕量给快路径；③ 但 skew 放大 hold 风险，postCTS 阶段 hold 违例往往与 skew 直接相关——能讲出这层权衡就是加分项。</div>
+</section>
+
+<!-- ============================================================ 第4章 -->
+<section id="ch4">
+  <div class="ch-head"><span class="ch-num">CH 4</span><h2>28nm 工艺知识</h2></div>
+  <div class="ch-sub">2 篇 · Metal Stack（1P10M5x2y2z）/ stdcell 命名 —— 实战项目 TSMC 28nm</div>
+
+  <h3>4.1 Metal Stack：1P10M5x2y2z 逐项解读 <span class="tag t-hot">面试会问</span></h3>
+  <p>训练营的 ARM A7 项目基于 <strong>TSMC 28nm，Metal Stack = 1P10M5x2y2z</strong>，命名逐项拆开：</p>
+  <table>
+    <tr><th style="width:90px">记号</th><th>含义</th></tr>
+    <tr><td><code>1P</code></td><td>1 层 Poly（多晶硅栅）</td></tr>
+    <tr><td><code>10M</code></td><td>10 层 Metal</td></tr>
+    <tr><td><code>5x</code></td><td>M1–M6：线宽为 <strong>1 倍最小线宽</strong>（最薄，密度高，供信号细绕）</td></tr>
+    <tr><td><code>2y</code></td><td>M7–M8：<strong>2 倍</strong>最小线宽（更厚）</td></tr>
+    <tr><td><code>2z</code></td><td>M9–M10：<strong>厚金属层</strong>（原文按 8 倍宽度理解，低阻，适合 power）</td></tr>
+    <tr><td><code>AP</code></td><td>最顶上还有一层 RDL（Redistribution Layer）——top metal 上的一层 <strong>AL（铝）</strong>。铜太硬无法 bonding，pad 区域用软的铝做键合垫；个别设计也可借它走线（需多一层与 top metal 的 via mask），但一般信号不走这层：绕不了几根线还容易 DRC</td></tr>
+  </table>
+
+  <div class="callout c-tip"><b>层次资源分配（本项目实战结论，后面章节会直接引用）</b>
+  ① <strong>Power 走线用最上两层</strong>（金属厚、电阻低、IR drop 小）——本 block 留 M10 给 top 打 power mesh，power 用 <code>M8 + M9</code>；<br>
+  ② <strong>时钟走高层</strong>：需满足 NDR（加宽/加倍间距）以降低串扰和延迟，选 <code>M5–M8</code>（也可 M7+M8）；<br>
+  ③ <strong>信号走中间层</strong>；<br>
+  ④ <strong><code>M1 / M2 尽量省着用</code></strong>：std cell 内部互连已占大量 M1/M2 资源，M1 还布满 power rail，可用资源极少，硬挤易出 DRC。<br>
+  <span style="font-size:12.5px">为什么选 10 层？层数越多绕线资源越足，但成本越高；低成本方案常见 1P8M5x2zu——metal stack 是「绕线需求 vs 成本」的权衡，需按项目评估。</span></div>
+
+  <svg class="diagram" viewBox="0 0 880 430" role="img" xmlns="http://www.w3.org/2000/svg">
+    <title>1P10M5x2y2z 金属堆叠示意</title>
+    <desc>从上到下依次为 RDL、M10、M9、M8、M7、M6-M3、M2、M1、Poly 与衬底，标注各层典型用途与相对厚度</desc>
+    <rect x="40" y="30" width="800" height="360" rx="12" fill="#ffffff" stroke="#e4e7ec"/>
+    <!-- RDL -->
+    <rect x="70" y="52" width="480" height="34" rx="4" fill="#f1efe8" stroke="#b4b2a9"/>
+    <text x="90" y="74" font-size="13" font-weight="600" fill="#444441">AP / RDL（铝，最厚）</text>
+    <text x="580" y="74" font-size="12.5" fill="#5f5e5a">pad bonding 用，一般不走信号</text>
+    <!-- M10 -->
+    <rect x="70" y="96" width="480" height="28" rx="4" fill="#fdf3df" stroke="#e0c37b"/>
+    <text x="90" y="115" font-size="13" font-weight="600" fill="#854f0b">M10（2z 厚）</text>
+    <text x="580" y="115" font-size="12.5" fill="#5f5e5a">预留给 top power mesh</text>
+    <!-- M9 -->
+    <rect x="70" y="134" width="480" height="28" rx="4" fill="#fdf3df" stroke="#e0c37b"/>
+    <text x="90" y="153" font-size="13" font-weight="600" fill="#854f0b">M9（2z 厚）</text>
+    <text x="580" y="153" font-size="12.5" fill="#5f5e5a">Power stripe（与 M8 搭配）</text>
+    <!-- M8 -->
+    <rect x="70" y="172" width="480" height="24" rx="4" fill="#e3f3ee" stroke="#8fd0bc"/>
+    <text x="90" y="189" font-size="13" font-weight="600" fill="#0f6e56">M8（2y）</text>
+    <text x="580" y="189" font-size="12.5" fill="#5f5e5a">Power + Clock（NDR）</text>
+    <!-- M7 -->
+    <rect x="70" y="206" width="480" height="24" rx="4" fill="#e3f3ee" stroke="#8fd0bc"/>
+    <text x="90" y="223" font-size="13" font-weight="600" fill="#0f6e56">M7（2y）</text>
+    <text x="580" y="223" font-size="12.5" fill="#5f5e5a">Clock 绕线（NDR）</text>
+    <!-- M6-M3 -->
+    <rect x="70" y="240" width="480" height="52" rx="4" fill="#eaf2fb" stroke="#9cc0e5"/>
+    <text x="90" y="262" font-size="13" font-weight="600" fill="#185fa5">M6 · M5 · M4 · M3（5x，1 倍线宽）</text>
+    <text x="90" y="280" font-size="11.5" fill="#5a82a8">M5–M6 兼作时钟绕线层</text>
+    <text x="580" y="270" font-size="12.5" fill="#5f5e5a">信号线主力绕线层</text>
+    <!-- M2 M1 -->
+    <rect x="70" y="302" width="480" height="18" rx="4" fill="#fbecec" stroke="#eab8b8"/>
+    <text x="90" y="316" font-size="12.5" font-weight="600" fill="#a32d2d">M2（5x）</text>
+    <text x="580" y="316" font-size="12.5" fill="#5f5e5a">cell 内部互连占多数，谨慎使用</text>
+    <rect x="70" y="330" width="480" height="18" rx="4" fill="#fbecec" stroke="#eab8b8"/>
+    <text x="90" y="344" font-size="12.5" font-weight="600" fill="#a32d2d">M1（5x）</text>
+    <text x="580" y="344" font-size="12.5" fill="#5f5e5a">布满 power rail，绕线资源最少</text>
+    <!-- poly + substrate -->
+    <rect x="70" y="356" width="480" height="8" rx="2" fill="#cecbf6" stroke="#a9a5e0"/>
+    <text x="90" y="378" font-size="12.5" font-weight="600" fill="#534ab7">Poly（1P）+ 衬底 / 标准单元</text>
+    <!-- thickness scale -->
+    <text x="580" y="378" font-size="11.5" fill="#8a909c">条的厚度示意相对厚薄：2z &gt; 2y &gt; 5x</text>
+  </svg>
+
+  <div class="callout c-interview"><b>面试三连问（原文原话）</b>
+  ① 为什么选这套 metal stack？——绕线资源与成本的权衡（本项目 10 层；低成本可用 1P8M5x2zu）。<br>
+  ② 哪些层可用于绕线？<br>
+  ③ Signal 和 Power 的层次怎么安排？——答出上面四条分配原则即可。</div>
+
+  <h3>4.2 标准单元的命名规则</h3>
+  <p>单元名字不是随便起的，从名字就能读出<strong>功能类型、驱动强度、阈值/速度档位</strong>等信息（例如区分同功能的低功耗 HVT 与高性能 LVT 版本）。做后端要能「见名知义」，设置 dont use、选 CTS 单元、分析时序库时都靠它。具体命名法以库文档和下方原文配图为准。</p>
+
+  <figure>
+    <img src="assets/notes-ch1-4/1fcda5b2-30a7-4202-a661-cd1677a53f10.png" alt="stdcell 命名规则" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 标准单元命名规则（讲义 7_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/32735600_1648713832.png" alt="cell 命名分类 1" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 各类 cell 命名（一）（讲义 7_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/77288700_1648713832.png" alt="cell 命名分类 2" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 各类 cell 命名（二）（讲义 7_2）</figcaption>
+    <div class="img-fail">配图缺失，请重新运行图片下载。</div>
+  </figure>
+  <figure>
+    <img src="assets/notes-ch1-4/18953600_1648713833.png" alt="cell 命名分类 3" loading="lazy" onerror="this.closest('figure').classList.add('fail')">
+    <figcaption>原文配图 · 各类 cell 命名（三）（讲义 7_2）</figcaption>
+    <div class="img-fail">配图缺失。</div>
+  </figure>
+</section>
+
+<!-- ============================================================ 自检清单 -->
+<section id="checklist">
+  <div class="ch-head"><span class="ch-num">CHECK</span><h2>学完自检：合上笔记你能答出来吗</h2></div>
+  <div class="card">
+    <ol>
+      <li>说出后端 PR 全流程的步骤顺序，每步一句话目的。</li>
+      <li>组合逻辑和时序逻辑的区别？latch 和 DFF 谁是电平敏感、谁是边沿触发？</li>
+      <li>标准单元版图为什么要做成等高、对齐网格、电源线在上下边界？</li>
+      <li>site、row、double-height row 分别是什么？std cell 摆放的黄金规则是什么？</li>
+      <li>port、terminal、pin 三个概念分别属于哪个层面？绕线靠哪个实现物理连接？</li>
+      <li>默写 setup / hold 的计算公式。为什么 setup 公式有 Tc 而 hold 没有？谁决定最高频率？</li>
+      <li>NLDM 和 CCS 模型的本质区别是什么？</li>
+      <li>为什么 powerplan 要用高层金属？串扰的根源是哪种电容？</li>
+      <li>TT/FF/SS/FS/SF 五个 corner 是什么组合？WCS 和 WCL 的区别在哪？</li>
+      <li>OCV / AOCV / POCV 三者的悲观度和精度如何演进？AOCV 的 derate 表有哪两个维度？</li>
+      <li>CRPR 为什么要存在？它等于什么？实际 signoff 时 setup 和 hold 分别只对哪条路径加 derate？</li>
+      <li>Positive skew 让谁受益、谁受损？为什么说 skew 是零和博弈？</li>
+      <li>解读 1P10M5x2y2z：每一项什么意思？本项目 power、clock、signal 各用哪些层，为什么？</li>
+    </ol>
+  </div>
+  <div class="callout c-interview"><b>下一步</b>
+  第 5–6 章将进入 Innovus 工具：VNC 环境、MMMC 配置、dbget 脚本。第 3 章的概念（PVT/OCV/derate）会在 MMMC 视图配置中第一次落地——届时回到本笔记复习 3.4–3.6 节效果最佳。</div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>笔记整理自「吾爱IC社区 IC 后端训练营（第29期）」第 1–4 章图文讲义（共 13 篇），结构化重排并修正了原文中的个别笔误（如「反向逻辑」应为「反相逻辑」；hold 的英文定义原文有误，已按标准定义更正）。全部 18 张原文配图已下载到本地 assets/notes-ch1-4/ 目录，笔记可完全离线使用。</p>
+    <p>仅用于个人学习复习，请勿商用传播。Skew 正负号的约定以本课程讲义为准（positive = capture 路径更长）。</p>
+  </div>
+</footer>
+<a class="top-link" href="#" title="回到顶部">↑</a>
+
+</body>
+</html>
